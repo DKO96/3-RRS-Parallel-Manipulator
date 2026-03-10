@@ -56,22 +56,21 @@ def theta_to_steps(theta, stepsize=0.003926991):
 def steps_to_motor(steps):
     lookup = np.array([0x01, 0x00, 0x10], dtype=np.uint8)
     deltas = np.sign(np.diff(steps, axis=0)).astype(int)
-    print(deltas)
 
     command_1 = lookup[deltas[:, 0] + 1]
     command_2 = lookup[deltas[:, 1] + 1]
     command_3 = lookup[deltas[:, 2] + 1]
 
-    return np.array([command_1, command_2, command_3])
+    return np.column_stack((command_1, command_2, command_3))
 
 def motion_planning():
+
+
     pose1 = np.array([0.3, 0.2, 1.0, 40.0])
-    pose2 = np.array([0.0, 0.0, 1.0, 80.0])
+    pose2 = np.array([-0.3, -0.2, 1.0, 65.0])
     theta = []
 
     trajectory = generate_trajectory(pose1, pose2, 50)
-
-    # print(f"{trajectory=}")
 
     plt.ion()
     fig = plt.figure()
@@ -82,17 +81,9 @@ def motion_planning():
     
     steps = theta_to_steps(np.array(theta))
 
-    # print(f"{np.shape(theta)}")
-    # print(f"{np.shape(steps)}")
-    # print(f"{steps}")
-
     command = steps_to_motor(steps)
-    # print(f"{command}")
 
-
-
-
-
+    # return command
     
     plt.ioff()
     plt.show()

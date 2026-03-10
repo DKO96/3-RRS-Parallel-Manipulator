@@ -109,6 +109,5 @@ def inverse_kinematics(n=np.array([0.0, 0.0, 0.0]), h=80, ax=None):
     return np.array([t1, t2, t3])
 
 
-
 if __name__ == "__main__":
     inverse_kinematics()
