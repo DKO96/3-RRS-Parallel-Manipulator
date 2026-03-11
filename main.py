@@ -24,13 +24,6 @@ def main():
             ser.flush()
             time.sleep(0.01)
 
-            response = ser.read(len(msg))
-            print("Sent:    ", msg.hex())
-            print("Received:", response.hex())
-            print()
-
-            time.sleep(0.001)
-
     except KeyboardInterrupt:
         print("\nStopped.")
 
