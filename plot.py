@@ -79,5 +79,5 @@ def plot_robot(ax, rj1, rj2, rj3, sj1, sj2, sj3, pj1, pj2, pj3, r, h, n):
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
 
-    plt.draw()
-    plt.pause(0.1)
+    # plt.draw()
+    # plt.pause(0.1)

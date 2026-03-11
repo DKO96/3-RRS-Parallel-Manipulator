@@ -83,10 +83,10 @@ def motion_planning():
 
     command = steps_to_motor(steps)
 
-    # return command
+    return command
     
-    plt.ioff()
-    plt.show()
+    # plt.ioff()
+    # plt.show()
 
 
 if __name__ == "__main__":
