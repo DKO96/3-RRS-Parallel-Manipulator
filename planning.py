@@ -63,16 +63,11 @@ def steps_to_motor(steps):
 
     return np.column_stack((command_1, command_2, command_3))
 
-def motion_planning():
-
-
-    pose1 = np.array([0.0, 0.0, 1.0, 86.0])
-    pose2 = np.array([0.0, 0.0, 1.0, 135])
+def motion_planning(pose1, pose2):
     theta = []
-
     trajectory = generate_trajectory(pose1, pose2, 50)
 
-    plt.ion()
+    # plt.ion()
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
 

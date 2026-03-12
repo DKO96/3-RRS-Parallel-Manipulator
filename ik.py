@@ -1,12 +1,11 @@
 import numpy as np
 from plot import plot_robot
 
-r = 70.0 # radius of platform [mm]
+r = 45.0 # radius of platform [mm]
 h = 60.0 # height of the platform [mm]
-n = np.array([0.3, 0.0, 1.0]) # orientation of the platform 
 b = 45.0 # base radius [mm]
 L1 = 55.0 # length of link 1 [mm] 
-L2 = 82.5 # length of link 2 [mm]
+L2 = 85.0 # length of link 2 [mm]
 P1 = 0  # plane of arm 1
 P2 = np.deg2rad(120) # plane of arm 2
 P3 = np.deg2rad(240) # plane of arm 3
@@ -35,7 +34,7 @@ def check_link_distance(pt1, pt2, expected):
         print(f"Invalid geometry: {d:.4f} != {expected}")
     return  
 
-def inverse_kinematics(n=np.array([0.0, 0.0, 0.0]), h=80, ax=None):
+def inverse_kinematics(n=np.array([0.0, 0.0, 1.0]), h=80, ax=None):
     # Find position of spherical joints
     # Arm 1 
     sj1 = np.array([0.0, 0.0, 0.0])
@@ -91,15 +90,15 @@ def inverse_kinematics(n=np.array([0.0, 0.0, 0.0]), h=80, ax=None):
 
     # Find angle of driven revolute joints
     # Arm 1
-    t1 = np.pi/2 - np.arctan2(pj1[0]-r, pj1[2])
+    t1 = np.pi/2 - np.arctan2(pj1[0]-b, pj1[2])
 
     # Arm 2
     radial2 = np.sqrt(pj2[0]**2 + pj2[1]**2)
-    t2 = np.pi/2 - np.arctan2(radial2 - r, pj2[2])
+    t2 = np.pi/2 - np.arctan2(radial2 - b, pj2[2])
 
     # Arm 3
     radial3 = np.sqrt(pj3[0]**2 + pj3[1]**2)
-    t3 = np.pi/2 - np.arctan2(radial3 - r, pj3[2])
+    t3 = np.pi/2 - np.arctan2(radial3 - b, pj3[2])
 
     # print(f"{np.rad2deg(t1)=}")
     # print(f"{np.rad2deg(t2)=}")
