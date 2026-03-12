@@ -1,11 +1,12 @@
 import numpy as np
 from plot import plot_robot
 
-r = 40 # radius of platform [mm]
-h = 60 # height of the platform [mm]
+r = 70.0 # radius of platform [mm]
+h = 60.0 # height of the platform [mm]
 n = np.array([0.3, 0.0, 1.0]) # orientation of the platform 
-L1 = 40 # length of link 1 [mm] 
-L2 = 40 # length of link 2 [mm]
+b = 45.0 # base radius [mm]
+L1 = 55.0 # length of link 1 [mm] 
+L2 = 82.5 # length of link 2 [mm]
 P1 = 0  # plane of arm 1
 P2 = np.deg2rad(120) # plane of arm 2
 P3 = np.deg2rad(240) # plane of arm 3
@@ -63,16 +64,16 @@ def inverse_kinematics(n=np.array([0.0, 0.0, 0.0]), h=80, ax=None):
     # Find position of the pin joints
     # Arm 1 
     n1 = plane_normal(P1)
-    rj1 = np.array([40.0, 0.0, 0.0])
+    rj1 = np.array([b, 0.0, 0.0])
     pj1 = joint_intersection(rj1, L1, sj1, L2, n1)
 
     # Arm 2 
-    rj2 = np.array([40.0*np.cos(P2), 40.0*np.sin(P2), 0.0])
+    rj2 = np.array([b*np.cos(P2), b*np.sin(P2), 0.0])
     n2 = plane_normal(P2)
     pj2 = joint_intersection(rj2, L1, sj2, L2, n2)
 
     # Arm 1 
-    rj3 = np.array([40.0*np.cos(P3), 40.0*np.sin(P3), 0.0])
+    rj3 = np.array([b*np.cos(P3), b*np.sin(P3), 0.0])
     n3 = plane_normal(P3)
     pj3 = joint_intersection(rj3, L1, sj3, L2, n3)
 

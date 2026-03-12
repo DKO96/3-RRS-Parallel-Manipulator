@@ -66,8 +66,8 @@ def steps_to_motor(steps):
 def motion_planning():
 
 
-    pose1 = np.array([0.0, 0.0, 1.0, 20.0])
-    pose2 = np.array([0.0, 0.0, 1.0, 80.0])
+    pose1 = np.array([0.0, 0.0, 1.0, 86.0])
+    pose2 = np.array([0.0, 0.0, 1.0, 135])
     theta = []
 
     trajectory = generate_trajectory(pose1, pose2, 50)
@@ -85,8 +85,8 @@ def motion_planning():
 
     return command
     
-    # plt.ioff()
-    # plt.show()
+    plt.ioff()
+    plt.show()
 
 
 if __name__ == "__main__":
