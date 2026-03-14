@@ -1,11 +1,11 @@
 import numpy as np
 from plot import plot_robot
 
-r = 45.0 # radius of platform [mm]
+r = 55.0 # radius of platform [mm]
 h = 60.0 # height of the platform [mm]
 b = 45.0 # base radius [mm]
-L1 = 55.0 # length of link 1 [mm] 
-L2 = 85.0 # length of link 2 [mm]
+L1 = 56.0 # length of link 1 [mm] 
+L2 = 84.0 # length of link 2 [mm]
 P1 = 0  # plane of arm 1
 P2 = np.deg2rad(120) # plane of arm 2
 P3 = np.deg2rad(240) # plane of arm 3
@@ -104,7 +104,7 @@ def inverse_kinematics(n=np.array([0.0, 0.0, 1.0]), h=80, ax=None):
     # print(f"{np.rad2deg(t2)=}")
     # print(f"{np.rad2deg(t3)=}")
 
-    # plot_robot(ax, rj1, rj2, rj3, sj1, sj2, sj3, pj1, pj2, pj3, r, h, n)
+    plot_robot(ax, rj1, rj2, rj3, sj1, sj2, sj3, pj1, pj2, pj3, r, h, n)
 
     return np.array([t1, t2, t3])
 

@@ -78,11 +78,14 @@ def motion_planning(pose1, pose2):
 
     command = steps_to_motor(steps)
 
-    return command
+    # return command
     
     plt.ioff()
     plt.show()
 
 
 if __name__ == "__main__":
-    motion_planning()
+    pose1 = np.array([0.0, 0.0, 1.0, 50.0])
+    pose2 = np.array([0.4, 0.0, 1.0, 120.0])
+
+    motion_planning(pose1, pose2)

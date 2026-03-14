@@ -23,18 +23,6 @@ def generate_demo():
         [0.0, 0.4, 0.9, 120.0],
         [-0.4, 0.0, 0.9, 120.0],
         [0.0, -0.4, 0.9, 120.0],
-        [0.4, 0.0, 0.9, 120.0],
-        [0.0, 0.4, 0.9, 120.0],
-        [-0.4, 0.0, 0.9, 120.0],
-        [0.0, -0.4, 0.9, 120.0],
-        [0.4, 0.0, 0.9, 120.0],
-        [0.0, 0.4, 0.9, 120.0],
-        [-0.4, 0.0, 0.9, 120.0],
-        [0.0, -0.4, 0.9, 120.0],
-        [0.4, 0.0, 0.9, 120.0],
-        [0.0, 0.4, 0.9, 120.0],
-        [-0.4, 0.0, 0.9, 120.0],
-        [0.0, -0.4, 0.9, 120.0],
         [0.0, 0.0, 1.0, 120.0],
         [0.0, 0.0, 1.0, 50.0],
     ])
@@ -57,16 +45,15 @@ def main():
 
     ser.reset_input_buffer()
     time.sleep(2)
+    # commands = generate_demo()
 
-    # pose1 = np.array([0.0, 0.0, 1.0, 50.0])
-    # pose2 = np.array([0.0, 0.0, 1.0, 120.0])
+    pose1 = np.array([0.0, 0.0, 1.0, 50.0])
+    pose2 = np.array([0.4, 0.0, 1.0, 120.0])
 
-    # print(f"Pose 1: {normalize_vector(pose1[:3])}")
-    # print(f"Pose 2: {normalize_vector(pose2[:3])}")
+    print(f"Pose 1: {normalize_vector(pose1[:3])}")
+    print(f"Pose 2: {normalize_vector(pose2[:3])}")
     
-    # commands = motion_planning(pose1, pose2)
-
-    commands = generate_demo()
+    commands = motion_planning(pose1, pose2)
 
     try:
         missed = 0
@@ -84,6 +71,7 @@ def main():
             time.sleep(0.01)
 
         # print(f"Done. {missed} mismatches out of {len(commands)} commands.")    
+
 
     except KeyboardInterrupt:
         print("\nStopped.")
