@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+# from ik_old import inverse_kinematics
 from ik import inverse_kinematics
 
 def generate_trajectory(pose1, pose2, num_steps=50):
@@ -17,7 +18,7 @@ def generate_trajectory(pose1, pose2, num_steps=50):
     
     return trajectory
 
-def theta_to_steps(theta, stepsize=0.003926991):
+def theta_to_steps(theta, stepsize=0.001963495):
     theta_1 = theta[:, 0]
     theta_2 = theta[:, 1]
     theta_3 = theta[:, 2]
@@ -54,7 +55,7 @@ def theta_to_steps(theta, stepsize=0.003926991):
     return np.array(result)
 
 def steps_to_motor(steps):
-    lookup = np.array([0x02, 0x00, 0x01], dtype=np.uint8)
+    lookup = np.array([0x01, 0x00, 0x02], dtype=np.uint8)
     deltas = np.sign(np.diff(steps, axis=0)).astype(int)
 
     command_1 = lookup[deltas[:, 0] + 1]
@@ -72,20 +73,22 @@ def motion_planning(pose1, pose2):
     ax = fig.add_subplot(projection='3d')
 
     for t in trajectory:
-        theta.append(inverse_kinematics(t[0], t[1], ax))
+        theta.append(inverse_kinematics(t[0], t[1]))
+    
+    theta = np.unwrap(theta, axis=0)
     
     steps = theta_to_steps(np.array(theta))
 
     command = steps_to_motor(steps)
 
-    # return command
+    return command
     
-    plt.ioff()
-    plt.show()
+    # plt.ioff()
+    # plt.show()
 
 
 if __name__ == "__main__":
     pose1 = np.array([0.0, 0.0, 1.0, 50.0])
-    pose2 = np.array([0.4, 0.0, 1.0, 120.0])
+    pose2 = np.array([0.0, 0.0, 1.0, 60.0])
 
     motion_planning(pose1, pose2)

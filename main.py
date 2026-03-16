@@ -13,18 +13,18 @@ def generate_demo():
     motor_commands = []
 
     poses = np.array([
-        [0.0, 0.0, 1.0, 50.0],
-        [0.0, 0.0, 1.0, 120.0],
-        [0.4, 0.0, 0.9, 120.0],
-        [0.0, 0.4, 0.9, 120.0],
-        [-0.4, 0.0, 0.9, 120.0],
-        [0.0, -0.4, 0.9, 120.0],
-        [0.4, 0.0, 0.9, 120.0],
-        [0.0, 0.4, 0.9, 120.0],
-        [-0.4, 0.0, 0.9, 120.0],
-        [0.0, -0.4, 0.9, 120.0],
-        [0.0, 0.0, 1.0, 120.0],
-        [0.0, 0.0, 1.0, 50.0],
+        [ 0.0,  0.0, 1.0,  55.0],
+        [ 0.0,  0.0, 1.0, 110.0],
+        [ 0.4,  0.0, 0.9, 110.0],
+        [ 0.0,  0.4, 0.9, 110.0],
+        [-0.4,  0.0, 0.9, 110.0],
+        [ 0.0, -0.4, 0.9, 110.0],
+        [ 0.4,  0.0, 0.9, 110.0],
+        [ 0.0,  0.4, 0.9, 110.0],
+        [-0.4,  0.0, 0.9, 110.0],
+        [ 0.0, -0.4, 0.9, 110.0],
+        [ 0.0,  0.0, 1.0, 110.0],
+        [ 0.0,  0.0, 1.0,  55.0],
     ])
     
     for i in range(len(poses) - 1):
@@ -45,24 +45,21 @@ def main():
 
     ser.reset_input_buffer()
     time.sleep(2)
-    # commands = generate_demo()
 
-    pose1 = np.array([0.0, 0.0, 1.0, 50.0])
-    pose2 = np.array([0.4, 0.0, 1.0, 120.0])
-
-    print(f"Pose 1: {normalize_vector(pose1[:3])}")
-    print(f"Pose 2: {normalize_vector(pose2[:3])}")
-    
-    commands = motion_planning(pose1, pose2)
+    # pose1 = np.array([0.0, 0.0, 1.0, 55.0])
+    # pose2 = np.array([0.0, -0.4, 0.6, 120.0])
+    # commands = motion_planning(pose1, pose2)
+    commands = generate_demo()
 
     try:
         missed = 0
         for i, cmd in enumerate(commands):
+            # print(f"{i=}, \t {cmd=}")
             msg = bytes(cmd)
             ser.write(b'\xAA' + msg + b'\x55')
             ser.flush()
 
-            # # read back serial msg
+            # read back serial msg
             # echo = ser.read(3)
             # if echo != msg:
             #     missed += 1
@@ -70,7 +67,7 @@ def main():
 
             time.sleep(0.01)
 
-        # print(f"Done. {missed} mismatches out of {len(commands)} commands.")    
+        print(f"Done. {missed} mismatches out of {len(commands)} commands.")    
 
 
     except KeyboardInterrupt:
