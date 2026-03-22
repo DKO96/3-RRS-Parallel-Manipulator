@@ -11,26 +11,38 @@ void gpio_usart2(void) {
       ((7U << GPIO_AFRL_AFSEL2_Pos) | (7U << GPIO_AFRL_AFSEL3_Pos));
 }
 
-void gpio_i2c1(void) {
-  /* Configure PB8, PB9 for I2C1
-      PB8 -> I2C1_SCL (AF mode)
-      PB9 -> I2C1_SDA (AF mode)
-  */
-  GPIOB->MODER &= ~(GPIO_MODER_MODE8 | GPIO_MODER_MODE9);
-  GPIOB->MODER |= ((2U << GPIO_MODER_MODE8_Pos) | (2U << GPIO_MODER_MODE9_Pos));
+void gpio_stepper1(void) {
+  // Configure PA0 for TMC2209(1) step pin
+  GPIOA->MODER &= ~GPIO_MODER_MODE0;
+  GPIOA->MODER |= GPIO_MODER_MODE0_0;
 
-  GPIOB->AFR[1] &= ~(GPIO_AFRH_AFSEL8 | GPIO_AFRH_AFSEL9);
-  GPIOB->AFR[1] |=
-      ((4U << GPIO_AFRH_AFSEL8_Pos) | (4U << GPIO_AFRH_AFSEL9_Pos));
+  GPIOA->OTYPER &= ~GPIO_OTYPER_OT0;
 
-  GPIOB->OTYPER |= (GPIO_OTYPER_OT8 | GPIO_OTYPER_OT9);
+  GPIOA->OSPEEDR &= ~GPIO_OSPEEDR_OSPEED0;
+  GPIOA->OSPEEDR |= (3U << GPIO_OSPEEDR_OSPEED0_Pos);
 
-  GPIOB->OSPEEDR &= ~((GPIO_OSPEEDR_OSPEED8) | (GPIO_OSPEEDR_OSPEED9));
-  GPIOB->OSPEEDR |=
-      ((3U << GPIO_OSPEEDR_OSPEED8_Pos) | (3U << GPIO_OSPEEDR_OSPEED9_Pos));
+  GPIOA->PUPDR &= ~GPIO_PUPDR_PUPD0;
 
-  GPIOB->PUPDR &= ~((GPIO_PUPDR_PUPD8) | (GPIO_PUPDR_PUPD9));
-  GPIOB->PUPDR |= ((1U << GPIO_PUPDR_PUPD8_Pos) | (1U << GPIO_PUPDR_PUPD9_Pos));
+  // Configure PB2 for TMC2209(2) dir pin
+  GPIOB->MODER &= ~GPIO_MODER_MODE2;
+  GPIOB->MODER |= GPIO_MODER_MODE2_0;
+}
+
+void gpio_stepper2(void) {
+  // Configure PA1 for TMC2209(2) step pin
+  GPIOA->MODER &= ~GPIO_MODER_MODE1;
+  GPIOA->MODER |= GPIO_MODER_MODE1_0;
+
+  GPIOA->OTYPER &= ~GPIO_OTYPER_OT1;
+
+  GPIOA->OSPEEDR &= ~GPIO_OSPEEDR_OSPEED1;
+  GPIOA->OSPEEDR |= (3U << GPIO_OSPEEDR_OSPEED1_Pos);
+
+  GPIOA->PUPDR &= ~GPIO_PUPDR_PUPD1;
+
+  // Configure PB1 for TMC2209(1) dir pin
+  GPIOB->MODER &= ~GPIO_MODER_MODE1;
+  GPIOB->MODER |= GPIO_MODER_MODE1_0;
 }
 
 void gpio_init(void) {
@@ -39,5 +51,6 @@ void gpio_init(void) {
   RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN;
 
   gpio_usart2();
-  gpio_i2c1();
+  gpio_stepper1();
+  gpio_stepper2();
 }

@@ -1,108 +1,51 @@
 #include "main.h"
 
-#include "math.h"
-#define M_PI 3.14159265358979323846
-#define DEG_TO_RAD(deg) ((deg) * (M_PI / 180.f))
+#define NUM_MOTORS 2
 
-const float r = 55.0f;
-const float b = 45.0f;
-const float L1 = 55.0f;
-const float L2 = 85.0f;
-const float alpha[3] = {
-    0,
-    DEG_TO_RAD(120.0f),
-    DEG_TO_RAD(240.0f),
-};
-float p[3] = {r, 0.0f, 0.0f};
+#define STEP_PIN_0 GPIO_BSRR_BS0
+#define STEP_PIN_1 GPIO_BSRR_BS1
+#define RESET_PIN_0 GPIO_BSRR_BR0
+#define RESET_PIN_1 GPIO_BSRR_BR1
 
-void mat_mul_3x3(float A[3][3], float B[3][3], float result[3][3]) {
-  for (uint8_t i = 0; i < 3; i++) {
-    for (uint8_t j = 0; j < 3; j++) {
-      result[i][j] = 0.0;
-      for (uint8_t k = 0; k < 3; k++) {
-        result[i][j] += A[i][k] * B[k][j];
-      }
+static const uint32_t step_set[NUM_MOTORS] = {STEP_PIN_0, STEP_PIN_1};
+static const uint32_t step_reset[NUM_MOTORS] = {RESET_PIN_0, RESET_PIN_1};
+
+volatile uint32_t step_period[NUM_MOTORS] = {100, 100};
+volatile uint32_t step_counter[NUM_MOTORS] = {0, 0};
+volatile uint8_t motor_enabled[NUM_MOTORS] = {1, 1};
+volatile uint32_t steps_remaining[NUM_MOTORS] = {3200, 3200};
+volatile uint32_t pending_resets = 0;
+
+void TIM1_UP_TIM10_IRQHandler(void) {
+  TIM1->SR &= ~TIM_SR_UIF;
+
+  uint32_t pins_to_set = 0;
+  uint32_t resets = 0;
+
+  for (uint8_t i = 0; i < NUM_MOTORS; i++) {
+    if (steps_remaining[i] == 0) continue;
+
+    step_counter[i]++;
+    if (step_counter[i] >= step_period[i]) {
+      step_counter[i] = 0;
+      pins_to_set |= step_set[i];
+      resets |= step_reset[i];
+      steps_remaining[i]--;
     }
   }
-}
 
-void mat_vec_mul_3x1(float A[3][3], float v[3], float result[3]) {
-  for (uint8_t i = 0; i < 3; i++) {
-    result[i] = 0.0;
-    for (uint8_t j = 0; j < 3; j++) {
-      result[i] += A[i][j] * v[j];
-    }
+  if (pins_to_set) {
+    GPIOA->BSRR = pins_to_set;
+    pending_resets = resets;
+
+    TIM2->CNT = 0;
+    TIM2->CR1 |= TIM_CR1_CEN;
   }
 }
 
-void vec3_add(float a[3], float b[3], float result[3]) {
-  result[0] = a[0] + b[0];
-  result[1] = a[1] + b[1];
-  result[2] = a[2] + b[2];
-}
-
-void RRS_ik(float n[3], float h, float theta[3]) {
-  float psi_y = asinf(n[0]);
-  float psi_x = asinf(-n[1] / cosf(psi_y));
-  float psi_z = atan2(-sinf(psi_x) * sinf(psi_y), cosf(psi_x) + cosf(psi_y));
-
-  float sx = sinf(psi_x);
-  float cx = cosf(psi_x);
-  float sy = sinf(psi_y);
-  float cy = cosf(psi_y);
-  float sz = sinf(psi_z);
-  float cz = cosf(psi_z);
-
-  float R[3][3];
-  R[0][0] = cy * cz;
-  R[0][1] = -cy * sz;
-  R[0][2] = sy;
-
-  R[1][0] = cx * sz + sx * sy * cz;
-  R[1][1] = cx * cz - sx * sy * sz;
-  R[1][2] = -sx * cy;
-
-  R[2][0] = sx * sz - cx * sy * cz;
-  R[2][1] = sx * cz + cx * sy * sz;
-  R[2][2] = cx * cy;
-
-  float Q[3];
-  Q[0] = -R[0][1] * r;
-  Q[1] = (r * (R[0][0] - R[1][1])) * 0.5f;
-  Q[2] = h;
-
-  for (uint8_t i = 0; i < 3; i++) {
-    float sa = sinf(alpha[i]);
-    float ca = cosf(alpha[i]);
-
-    float Rz[3][3];
-    Rz[0][0] = ca;
-    Rz[0][1] = -sa;
-    Rz[0][2] = 0;
-
-    Rz[1][0] = sa;
-    Rz[1][1] = ca;
-    Rz[1][2] = 0;
-
-    Rz[2][0] = 0;
-    Rz[2][1] = 0;
-    Rz[2][2] = 1;
-
-    float temp1[3];
-    float temp2[3];
-    float S[3];
-    mat_vec_mul_3x1(Rz, p, temp1);
-    mat_vec_mul_3x1(R, temp1, temp2);
-    vec3_add(Q, temp2, S);
-
-    float A = 2 * L1 * ca * (-S[0] + b * ca);
-    float B = 2 * L1 * S[2] * ca * ca;
-    float C = S[0] * S[0] - 2 * b * S[0] * ca +
-              ca * ca * (b * b + L1 * L1 - L2 * L2 + S[2] * S[2]);
-
-    float t = (-B + sqrtf(A * A + B * B - C * C)) / (C - A);
-    theta[i] = 2 * atanf(t);
-  }
+void TIM2_IRQHandler(void) {
+  TIM2->SR &= ~TIM_SR_UIF;
+  GPIOA->BSRR = pending_resets;
 }
 
 int main() {
@@ -110,23 +53,10 @@ int main() {
   system_init();
   gpio_init();
   uart_init(USART2);
-
-  float n[3] = {0.3, 0.2, 1.0};
-  float h = 100.0;
-  float theta[3];
+  timer1_init();
+  timer2_init();
 
   while (1) {
-    RRS_ik(n, h, theta);
-
-    printS("theta: \t");
-    printF(theta[0]);
-    printS("\t");
-    printF(theta[1]);
-    printS("\t");
-    printF(theta[2]);
-    printS("\r\n");
-
-    delay_ms(500);
   }
 
   return 0;

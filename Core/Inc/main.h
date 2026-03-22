@@ -3,6 +3,7 @@
 
 // Peripherals
 #include "gpio.h"
+#include "timer.h"
 #include "uart.h"
 
 /**
