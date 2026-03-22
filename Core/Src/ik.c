@@ -1,18 +1,12 @@
 #include "main.h"
 #include "math.h"
-#define M_PI 3.14159265358979323846
-#define DEG_TO_RAD(deg) ((deg) * (M_PI / 180.f))
 
-const float r = 55.0f;
-const float b = 45.0f;
-const float L1 = 55.0f;
-const float L2 = 85.0f;
-const float alpha[3] = {
+static float p[3] = {PLATFORM, 0.0f, 0.0f};
+static const float alpha[3] = {
     0,
     DEG_TO_RAD(120.0f),
     DEG_TO_RAD(240.0f),
 };
-float p[3] = {r, 0.0f, 0.0f};
 
 void mat_mul_3x3(float A[3][3], float B[3][3], float result[3][3]) {
   for (uint8_t i = 0; i < 3; i++) {
@@ -66,8 +60,8 @@ void RRS_ik(float n[3], float h, float theta[3]) {
   R[2][2] = cx * cy;
 
   float Q[3];
-  Q[0] = -R[0][1] * r;
-  Q[1] = (r * (R[0][0] - R[1][1])) * 0.5f;
+  Q[0] = -R[0][1] * PLATFORM;
+  Q[1] = (PLATFORM * (R[0][0] - R[1][1])) * 0.5f;
   Q[2] = h;
 
   for (uint8_t i = 0; i < 3; i++) {
@@ -94,10 +88,10 @@ void RRS_ik(float n[3], float h, float theta[3]) {
     mat_vec_mul_3x1(R, temp1, temp2);
     vec3_add(Q, temp2, S);
 
-    float A = 2 * L1 * ca * (-S[0] + b * ca);
+    float A = 2 * L1 * ca * (-S[0] + BASE * ca);
     float B = 2 * L1 * S[2] * ca * ca;
-    float C = S[0] * S[0] - 2 * b * S[0] * ca +
-              ca * ca * (b * b + L1 * L1 - L2 * L2 + S[2] * S[2]);
+    float C = S[0] * S[0] - 2 * BASE * S[0] * ca +
+              ca * ca * (BASE * BASE + L1 * L1 - L2 * L2 + S[2] * S[2]);
 
     float t = (-B + sqrtf(A * A + B * B - C * C)) / (C - A);
     theta[i] = 2 * atanf(t);

@@ -1,7 +1,5 @@
 #include "main.h"
 
-#define NUM_MOTORS 2
-
 #define STEP_PIN_0 GPIO_BSRR_BS0
 #define STEP_PIN_1 GPIO_BSRR_BS1
 #define RESET_PIN_0 GPIO_BSRR_BR0

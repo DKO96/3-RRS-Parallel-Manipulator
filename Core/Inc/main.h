@@ -1,6 +1,9 @@
 #ifndef MAIN_H_
 #define MAIN_H_
 
+#include "config.h"
+#include "ik.h"
+
 // Peripherals
 #include "gpio.h"
 #include "timer.h"
