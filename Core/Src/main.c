@@ -2,16 +2,20 @@
 
 #define STEP_PIN_0 GPIO_BSRR_BS0
 #define STEP_PIN_1 GPIO_BSRR_BS1
+#define STEP_PIN_2 GPIO_BSRR_BS4
 #define RESET_PIN_0 GPIO_BSRR_BR0
 #define RESET_PIN_1 GPIO_BSRR_BR1
+#define RESET_PIN_2 GPIO_BSRR_BR4
 
-static const uint32_t step_set[NUM_MOTORS] = {STEP_PIN_0, STEP_PIN_1};
-static const uint32_t step_reset[NUM_MOTORS] = {RESET_PIN_0, RESET_PIN_1};
+static const uint32_t step_set[NUM_MOTORS] = {STEP_PIN_0, STEP_PIN_1,
+                                              STEP_PIN_2};
+static const uint32_t step_reset[NUM_MOTORS] = {RESET_PIN_0, RESET_PIN_1,
+                                                RESET_PIN_2};
 
-volatile uint32_t step_period[NUM_MOTORS] = {100, 100};
-volatile uint32_t step_counter[NUM_MOTORS] = {0, 0};
-volatile uint8_t motor_enabled[NUM_MOTORS] = {1, 1};
-volatile uint32_t steps_remaining[NUM_MOTORS] = {3200, 3200};
+volatile uint32_t step_period[NUM_MOTORS] = {100, 100, 100};
+volatile uint32_t step_counter[NUM_MOTORS] = {0, 0, 0};
+volatile uint8_t motor_enabled[NUM_MOTORS] = {1, 1, 1};
+volatile uint32_t steps_remaining[NUM_MOTORS] = {3200, 3200, 3200};
 volatile uint32_t pending_resets = 0;
 
 void TIM1_UP_TIM10_IRQHandler(void) {
