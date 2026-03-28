@@ -6,11 +6,13 @@
 #define DEG_TO_RAD(deg) ((deg) * (M_PI / 180.f))
 
 /* Robot Geometry */
-#define L1 55.0f
-#define L2 85.0f
-#define BASE 45.0f
-#define PLATFORM 55.0f
+#define L1 65.0f
+#define L2 45.0f
+#define BASE 50.0f
+#define PLATFORM 35.0f
 
 #define NUM_MOTORS 3
+#define STEPS_PER_REV 3200.0f
+#define ALPHA (6.2831853f / STEPS_PER_REV)
 
 #endif /* CONFIG_H_ */

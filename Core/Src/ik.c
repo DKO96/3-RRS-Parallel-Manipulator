@@ -1,5 +1,6 @@
-#include "main.h"
+#include "config.h"
 #include "math.h"
+#include "stm32f446xx.h"
 
 static float p[3] = {PLATFORM, 0.0f, 0.0f};
 static const float alpha[3] = {

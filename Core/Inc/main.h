@@ -2,6 +2,7 @@
 #define MAIN_H_
 
 #include "config.h"
+#include "controller.h"
 #include "ik.h"
 
 // Peripherals
