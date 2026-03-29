@@ -27,7 +27,7 @@ volatile uint32_t step_period[NUM_MOTORS] = {200, 200, 200};
 volatile uint32_t step_counter[NUM_MOTORS] = {0, 0, 0};
 volatile uint8_t motor_enabled[NUM_MOTORS] = {1, 1, 1};
 volatile uint32_t steps_remaining[NUM_MOTORS] = {0, 0, 0};
-volatile int32_t current_steps[NUM_MOTORS] = {0, 0, 0};
+volatile int32_t current_steps[NUM_MOTORS] = {800, 800, 800};
 volatile int32_t target_steps[NUM_MOTORS] = {0, 0, 0};
 volatile uint32_t pending_resets = 0;
 volatile int8_t step_dir[NUM_MOTORS] = {1, 1, 1};
@@ -71,12 +71,15 @@ void move_to_pose(float n[3], float h) {
 
   RRS_ik(n, h, theta);
 
+  printS("delta: ");
   for (uint8_t i = 0; i < NUM_MOTORS; i++) {
     uint32_t steps = angle_to_steps(theta[i]);
 
     target_steps[i] = (theta[i] >= 0) ? (int32_t)steps : -(int32_t)steps;
 
     int32_t delta = target_steps[i] - current_steps[i];
+    printI(delta);
+    printS("\t");
 
     if (delta < 0) {
       GPIOB->BSRR = dir_set[i];
@@ -99,15 +102,10 @@ int main() {
   timer2_init();
 
   float n[3] = {0.0f, 0.0f, 1.0f};
-  float h = 10.0f;
+  // float h = 108.0f;
+  float h = 60.0f;
   move_to_pose(n, h);
 
-  printS("steps: ");
-  printI(target_steps[0]);
-  printS("\t");
-  printI(target_steps[1]);
-  printS("\t");
-  printI(target_steps[2]);
   printS("\r\n");
 
   while (1) {

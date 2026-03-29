@@ -61,8 +61,8 @@ void RRS_ik(float n[3], float h, float theta[3]) {
   R[2][2] = cx * cy;
 
   float Q[3];
-  Q[0] = -R[0][1] * PLATFORM;
-  Q[1] = (PLATFORM * (R[0][0] - R[1][1])) * 0.5f;
+  Q[0] = (PLATFORM * (R[0][0] - R[1][1])) * 0.5f;
+  Q[1] = -R[0][1] * PLATFORM;
   Q[2] = h;
 
   for (uint8_t i = 0; i < 3; i++) {
@@ -95,6 +95,6 @@ void RRS_ik(float n[3], float h, float theta[3]) {
               ca * ca * (BASE * BASE + L1 * L1 - L2 * L2 + S[2] * S[2]);
 
     float t = (-B + sqrtf(A * A + B * B - C * C)) / (C - A);
-    theta[i] = 2 * atanf(t);
+    theta[i] = -2 * atanf(t);
   }
 }
