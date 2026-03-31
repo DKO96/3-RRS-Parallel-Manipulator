@@ -1,5 +1,7 @@
 #include "main.h"
 
+#include "math.h"
+
 #define STEP_SET_PIN_0 GPIO_BSRR_BS0
 #define STEP_SET_PIN_1 GPIO_BSRR_BS1
 #define STEP_SET_PIN_2 GPIO_BSRR_BS4
@@ -93,6 +95,47 @@ void move_to_pose(float n[3], float h) {
   }
 }
 
+uint8_t move_complete(void) {
+  return (steps_remaining[0] == 0 && steps_remaining[1] == 0 &&
+          steps_remaining[2] == 0);
+}
+
+void follow_trajectory(float n_start[3], float h_start, float n_end[3],
+                       float h_end) {
+  // Calculate number of steps
+  float angle_change = acosf(vec3_dot(n_start, n_end));
+  float height_change = fabsf(h_end - h_start);
+
+  uint32_t angle_steps = (uint32_t)(angle_change / angle_resolution);
+  uint32_t height_steps = (uint32_t)(height_change / height_resolution);
+  uint32_t num_steps =
+      (angle_steps > height_steps) ? angle_steps : height_steps;
+
+  if (num_steps == 0) return;
+
+  // Send each waypoint to timer
+  for (uint32_t i = 1; i <= num_steps; i++) {
+    float t = (float)i / (float)num_steps;
+
+    float n[3] = {0.0f, 0.0f, 0.0f};
+    n[0] = (1 - t) * n_start[0] + t * n_end[0];
+    n[1] = (1 - t) * n_start[1] + t * n_end[1];
+    n[2] = (1 - t) * n_start[2] + t * n_end[2];
+
+    float mag = sqrtf(n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
+    n[0] /= mag;
+    n[1] /= mag;
+    n[2] /= mag;
+
+    float h = (1 - t) * h_start + t * h_end;
+
+    move_to_pose(n, h);
+
+    while (!move_complete())
+      ;
+  }
+}
+
 int main() {
   /* Initialize hardware */
   system_init();
@@ -101,10 +144,14 @@ int main() {
   timer1_init();
   timer2_init();
 
-  float n[3] = {0.0f, 0.0f, 1.0f};
-  // float h = 108.0f;
-  float h = 60.0f;
-  move_to_pose(n, h);
+  float n_start[3] = {0.0f, 0.0f, 1.0f};
+  float h_start = 108.0f;
+
+  float n_end[3] = {0.0f, -0.5f, 1.0f};
+  float h_end = 70.0f;
+
+  move_to_pose(n_end, h_end);
+  // follow_trajectory(n_start, h_start, n_end, h_end);
 
   printS("\r\n");
 

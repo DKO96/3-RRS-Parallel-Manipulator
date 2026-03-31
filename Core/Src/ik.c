@@ -35,6 +35,10 @@ void vec3_add(float a[3], float b[3], float result[3]) {
   result[2] = a[2] + b[2];
 }
 
+float vec3_dot(float a[3], float b[3]) {
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
 void RRS_ik(float n[3], float h, float theta[3]) {
   float psi_y = asinf(n[0]);
   float psi_x = asinf(-n[1] / cosf(psi_y));

@@ -15,4 +15,7 @@
 #define STEPS_PER_REV 3200.0f
 #define ALPHA (6.2831853f / STEPS_PER_REV)
 
+#define angle_resolution 0.01745329f
+#define height_resolution 1.0f
+
 #endif /* CONFIG_H_ */
