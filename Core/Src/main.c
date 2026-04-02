@@ -42,18 +42,37 @@ int main() {
   timer1_init();
   timer2_init();
 
-  float n_start[3] = {0.0f, 0.0f, 1.0f};
-  float h_start = 108.0f;
-
-  float n_end[3] = {0.0f, -0.5f, 1.0f};
-  float h_end = 70.0f;
-
-  // move_to_pose(n_end, h_end);
-  follow_trajectory(n_start, h_start, n_end, h_end);
-
-  printS("\r\n");
+  float n_start[3];
+  float h_start;
+  float n_end[3];
+  float h_end;
 
   while (1) {
+    n_start[0] = 0.0f;
+    n_start[1] = 0.0f;
+    n_start[2] = 1.0f;
+    h_start = 130.0f;
+    n_end[0] = 0.0f;
+    n_end[1] = 0.0f;
+    n_end[2] = 1.0f;
+    h_end = 100.0f;
+
+    follow_trajectory(n_start, h_start, n_end, h_end);
+
+    delay_ms(3000);
+
+    n_start[0] = 0.0f;
+    n_start[1] = 0.0f;
+    n_start[2] = 1.0f;
+    h_start = 100.0f;
+    n_end[0] = 0.0f;
+    n_end[1] = 0.0f;
+    n_end[2] = 1.0f;
+    h_end = 130.0f;
+
+    follow_trajectory(n_start, h_start, n_end, h_end);
+
+    delay_ms(3000);
   }
 
   return 0;
