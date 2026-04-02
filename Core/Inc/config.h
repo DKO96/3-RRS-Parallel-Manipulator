@@ -14,6 +14,7 @@
 #define NUM_MOTORS 3
 #define STEPS_PER_REV 3200.0f
 #define ALPHA (6.2831853f / STEPS_PER_REV)
+#define BASE_SPEED 200
 
 #define angle_resolution 0.01745329f
 #define height_resolution 1.0f

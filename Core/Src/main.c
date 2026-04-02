@@ -2,9 +2,9 @@
 
 /* Initialize motor*/
 MotorController controller = {
-    .motor = {{.step_period = 200, .current_steps = 800, .step_dir = 1},
-              {.step_period = 200, .current_steps = 800, .step_dir = 1},
-              {.step_period = 200, .current_steps = 800, .step_dir = 1}},
+    .motor = {{.step_period = BASE_SPEED, .current_steps = 800, .step_dir = 1},
+              {.step_period = BASE_SPEED, .current_steps = 800, .step_dir = 1},
+              {.step_period = BASE_SPEED, .current_steps = 800, .step_dir = 1}},
     .pending_resets = 0};
 
 void TIM1_UP_TIM10_IRQHandler(void) {
@@ -14,8 +14,7 @@ void TIM1_UP_TIM10_IRQHandler(void) {
   uint32_t resets = 0;
 
   for (uint8_t i = 0; i < NUM_MOTORS; i++) {
-    if (controller.motor[i].steps_remaining == 0)
-      continue;
+    if (controller.motor[i].steps_remaining == 0) continue;
 
     controller.motor[i].step_counter++;
     if (controller.motor[i].step_counter >= controller.motor[i].step_period) {
@@ -59,33 +58,57 @@ int main() {
     n_start[0] = 0.0f;
     n_start[1] = 0.0f;
     n_start[2] = 1.0f;
-    h_start = 120.0f;
+    h_start = 129.0f;
     n_end[0] = 0.0f;
     n_end[1] = 0.0f;
     n_end[2] = 1.0f;
-    h_end = 80.0f;
+    h_end = 100.0f;
 
     printS("moving to height: ");
-    printI(80);
+    printI(100);
     printS("\r\n");
     follow_trajectory(&controller, n_start, h_start, n_end, h_end);
+
+    for (uint8_t i = 0; i < NUM_MOTORS; i++) {
+      printS("motor ");
+      printI(i);
+      printS(" current: ");
+      printI(controller.motor[i].current_steps);
+      printS(" target: ");
+      printI(controller.motor[i].target_steps);
+      printS(" remaining: ");
+      printI(controller.motor[i].steps_remaining);
+      printS("\r\n");
+    };
 
     delay_ms(2000);
 
     n_start[0] = 0.0f;
     n_start[1] = 0.0f;
     n_start[2] = 1.0f;
-    h_start = 80.0f;
+    h_start = 100.0f;
     n_end[0] = 0.0f;
     n_end[1] = 0.0f;
     n_end[2] = 1.0f;
-    h_end = 120.0f;
+    h_end = 129.0f;
 
     printS("moving to height: ");
-    printI(120);
+    printI(130);
     printS("\r\n");
 
     follow_trajectory(&controller, n_start, h_start, n_end, h_end);
+
+    for (uint8_t i = 0; i < NUM_MOTORS; i++) {
+      printS("motor ");
+      printI(i);
+      printS(" current: ");
+      printI(controller.motor[i].current_steps);
+      printS(" target: ");
+      printI(controller.motor[i].target_steps);
+      printS(" remaining: ");
+      printI(controller.motor[i].steps_remaining);
+      printS("\r\n");
+    };
 
     delay_ms(2000);
   }

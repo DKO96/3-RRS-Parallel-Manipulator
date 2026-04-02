@@ -23,8 +23,11 @@ uint32_t angle_to_steps(float angle) {
 static void move_to_pose(MotorController *mc, float n[3], float h) {
   float theta[3] = {0, 0, 0};
 
+  __disable_irq();
+
   RRS_ik(n, h, theta);
 
+  uint32_t max_steps = 0;
   for (uint8_t i = 0; i < NUM_MOTORS; i++) {
     uint32_t steps = angle_to_steps(theta[i]);
 
@@ -43,7 +46,19 @@ static void move_to_pose(MotorController *mc, float n[3], float h) {
 
     mc->motor[i].steps_remaining =
         (delta < 0) ? (uint32_t)(-delta) : (uint32_t)delta;
+
+    max_steps = (mc->motor[i].steps_remaining > max_steps)
+                    ? mc->motor[i].steps_remaining
+                    : max_steps;
   }
+
+  for (uint8_t i = 0; i < NUM_MOTORS; i++) {
+    if (mc->motor[i].steps_remaining == 0) continue;
+    mc->motor[i].step_period =
+        BASE_SPEED * max_steps / mc->motor[i].steps_remaining;
+  }
+
+  __enable_irq();
 }
 
 uint8_t move_complete(MotorController *mc) {
@@ -63,8 +78,7 @@ void follow_trajectory(MotorController *mc, float n_start[3], float h_start,
   uint32_t num_steps =
       (angle_steps > height_steps) ? angle_steps : height_steps;
 
-  if (num_steps == 0)
-    return;
+  if (num_steps == 0) return;
 
   // Send each waypoint to timer
   for (uint32_t i = 1; i <= num_steps; i++) {
