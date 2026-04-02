@@ -21,19 +21,9 @@
 extern const uint32_t step_set[NUM_MOTORS];
 extern const uint32_t step_reset[NUM_MOTORS];
 
-// extern volatile uint32_t step_period[NUM_MOTORS];
-// extern volatile uint32_t step_counter[NUM_MOTORS];
-// extern volatile uint8_t motor_enabled[NUM_MOTORS];
-// extern volatile uint32_t steps_remaining[NUM_MOTORS];
-// extern volatile int32_t current_steps[NUM_MOTORS];
-// extern volatile int32_t target_steps[NUM_MOTORS];
-// extern volatile uint32_t pending_resets;
-// extern volatile int8_t step_dir[NUM_MOTORS];
-
 typedef struct {
   volatile uint32_t step_period;
   volatile uint32_t step_counter;
-  volatile uint8_t motor_enabled;
   volatile uint32_t steps_remaining;
   volatile int32_t current_steps;
   volatile int32_t target_steps;
