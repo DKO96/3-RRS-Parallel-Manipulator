@@ -7,7 +7,7 @@
 
 /* Robot Geometry */
 #define L1 65.0f
-#define L2 45.0f
+#define L2 65.0f
 #define BASE 50.0f
 #define PLATFORM 35.0f
 
