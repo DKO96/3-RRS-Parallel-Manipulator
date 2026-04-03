@@ -1,11 +1,34 @@
 #include "main.h"
 
+#define LED_ON() (GPIOA->ODR |= GPIO_ODR_OD5)
+#define LED_OFF() (GPIOA->ODR &= ~GPIO_ODR_OD5)
+
 /* Initialize motor*/
 MotorController controller = {
     .motor = {{.step_period = BASE_SPEED, .current_steps = 800, .step_dir = 1},
               {.step_period = BASE_SPEED, .current_steps = 800, .step_dir = 1},
               {.step_period = BASE_SPEED, .current_steps = 800, .step_dir = 1}},
     .pending_resets = 0};
+
+volatile uint8_t safety_flag = 1;
+
+void EXTI15_10_IRQHandler(void) {
+  if (EXTI->PR & EXTI_PR_PR13) {
+    EXTI->PR |= EXTI_PR_PR13;
+  }
+
+  if (safety_flag) {
+    safety_flag = 0;
+    LED_OFF();
+    TIM1->CR1 |= TIM_CR1_CEN;
+    printS("SAFETY: OFF\r\n");
+  } else {
+    safety_flag = 1;
+    LED_ON();
+    TIM1->CR1 &= ~TIM_CR1_CEN;
+    printS("SAFETY: ON\r\n");
+  }
+}
 
 void TIM1_UP_TIM10_IRQHandler(void) {
   TIM1->SR &= ~TIM_SR_UIF;
@@ -45,9 +68,14 @@ int main() {
   /* Initialize hardware */
   system_init();
   gpio_init();
+  exti_init();
   uart_init(USART2);
   timer1_init();
   timer2_init();
+
+  LED_ON();
+  while (safety_flag)
+    ;
 
   float n_start[3];
   float h_start;
@@ -60,7 +88,7 @@ int main() {
     n_start[2] = 1.0f;
     h_start = 129.0f;
     n_end[0] = 0.0f;
-    n_end[1] = 0.0f;
+    n_end[1] = 0.3f;
     n_end[2] = 1.0f;
     h_end = 100.0f;
 
@@ -84,7 +112,7 @@ int main() {
     delay_ms(2000);
 
     n_start[0] = 0.0f;
-    n_start[1] = 0.0f;
+    n_start[1] = 0.3f;
     n_start[2] = 1.0f;
     h_start = 100.0f;
     n_end[0] = 0.0f;

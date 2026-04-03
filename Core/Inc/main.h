@@ -6,6 +6,7 @@
 #include "ik.h"
 
 // Peripherals
+#include "exti.h"
 #include "gpio.h"
 #include "timer.h"
 #include "uart.h"

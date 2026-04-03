@@ -11,6 +11,21 @@ void gpio_usart2(void) {
       ((7U << GPIO_AFRL_AFSEL2_Pos) | (7U << GPIO_AFRL_AFSEL3_Pos));
 }
 
+void gpio_led(void) {
+  // Configure GPIOA mode port for PA5
+  GPIOA->MODER &= ~GPIO_MODER_MODE5;
+  GPIOA->MODER |= GPIO_MODER_MODE5_0;
+}
+
+void gpio_button(void) {
+  // Configure GPIOC mode port for PC13
+  GPIOC->MODER &= ~GPIO_MODER_MODE13;
+
+  // Enable pull-up resistors
+  GPIOC->PUPDR &= ~GPIO_PUPDR_PUPD13;
+  GPIOC->PUPDR |= GPIO_PUPDR_PUPD13_0;
+}
+
 void gpio_stepper1(void) {
   // Configure PA0 for TMC2209(1) step pin
   GPIOA->MODER &= ~GPIO_MODER_MODE0;
@@ -68,6 +83,8 @@ void gpio_init(void) {
   RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN;
 
   gpio_usart2();
+  gpio_led();
+  gpio_button();
   gpio_stepper1();
   gpio_stepper2();
   gpio_stepper3();
