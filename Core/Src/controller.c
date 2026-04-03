@@ -2,6 +2,7 @@
 
 #include "ik.h"
 #include "math.h"
+#include "uart.h"
 
 const uint32_t step_set[NUM_MOTORS] = {STEP_SET_PIN_0, STEP_SET_PIN_1,
                                        STEP_SET_PIN_2};
@@ -20,12 +21,12 @@ uint32_t angle_to_steps(float angle) {
   return (uint32_t)(angle / ALPHA);
 }
 
-static void move_to_pose(MotorController *mc, float n[3], float h) {
+static void move_to_pose(MotorController *mc, float n[3], float h,
+                         float speed_factor) {
   float theta[3] = {0, 0, 0};
+  RRS_ik(n, h, theta);
 
   __disable_irq();
-
-  RRS_ik(n, h, theta);
 
   uint32_t max_steps = 0;
   for (uint8_t i = 0; i < NUM_MOTORS; i++) {
@@ -52,10 +53,19 @@ static void move_to_pose(MotorController *mc, float n[3], float h) {
                     : max_steps;
   }
 
+  printS("sf=");
+  printI((int)(speed_factor * 100));
+  printS(" ms=");
+  printI(max_steps);
+  printS("\r\n");
+
   for (uint8_t i = 0; i < NUM_MOTORS; i++) {
     if (mc->motor[i].steps_remaining == 0) continue;
+
+    uint32_t scaled_speed = (uint32_t)(BASE_SPEED / speed_factor);
+
     mc->motor[i].step_period =
-        BASE_SPEED * max_steps / mc->motor[i].steps_remaining;
+        scaled_speed * max_steps / mc->motor[i].steps_remaining;
   }
 
   __enable_irq();
@@ -65,6 +75,32 @@ uint8_t move_complete(MotorController *mc) {
   return (mc->motor[0].steps_remaining == 0 &&
           mc->motor[1].steps_remaining == 0 &&
           mc->motor[2].steps_remaining == 0);
+}
+
+static float trapezoidal_control(uint32_t i, uint32_t num_steps) {
+  float min_speed = 0.5f;
+
+  /* Triangular Profile */
+  if (num_steps <= 2 * TRAP_STEPS) {
+    uint32_t half_steps = num_steps / 2;
+
+    if (i <= half_steps) {
+      return min_speed + (1.0f - min_speed) * ((float)i / (float)half_steps);
+    } else {
+      return min_speed +
+             (1.0f - min_speed) * ((float)(num_steps - i) / (float)half_steps);
+    }
+  }
+
+  /* Trapezoidal Profile */
+  if (i <= TRAP_STEPS) {
+    return min_speed + (1.0f - min_speed) * ((float)i / (float)TRAP_STEPS);
+  } else if (i >= num_steps - TRAP_STEPS) {
+    return min_speed +
+           (1.0f - min_speed) * ((float)(num_steps - i) / (float)TRAP_STEPS);
+  } else {
+    return 1.0f;
+  }
 }
 
 void follow_trajectory(MotorController *mc, float n_start[3], float h_start,
@@ -80,9 +116,10 @@ void follow_trajectory(MotorController *mc, float n_start[3], float h_start,
 
   if (num_steps == 0) return;
 
-  // Send each waypoint to timer
   for (uint32_t i = 1; i <= num_steps; i++) {
     float t = (float)i / (float)num_steps;
+
+    float speed_factor = trapezoidal_control(i, num_steps);
 
     float n[3] = {0.0f, 0.0f, 0.0f};
     n[0] = (1 - t) * n_start[0] + t * n_end[0];
@@ -96,7 +133,7 @@ void follow_trajectory(MotorController *mc, float n_start[3], float h_start,
 
     float h = (1 - t) * h_start + t * h_end;
 
-    move_to_pose(mc, n, h);
+    move_to_pose(mc, n, h, speed_factor);
 
     while (!move_complete(mc))
       ;

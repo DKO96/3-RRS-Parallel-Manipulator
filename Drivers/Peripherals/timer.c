@@ -11,7 +11,7 @@ void timer1_init(void) {
   TIM1->SR &= ~TIM_SR_UIF;
   TIM1->DIER |= TIM_DIER_UIE;
 
-  TIM1->CR1 |= TIM_CR1_CEN;
+  // TIM1->CR1 |= TIM_CR1_CEN;
 
   // Configure TIM1 interrupt in NVIC
   NVIC_SetPriority(TIM1_UP_TIM10_IRQn, 6);

@@ -88,12 +88,12 @@ int main() {
     n_start[2] = 1.0f;
     h_start = 129.0f;
     n_end[0] = 0.0f;
-    n_end[1] = 0.3f;
+    n_end[1] = 0.0f;
     n_end[2] = 1.0f;
-    h_end = 100.0f;
+    h_end = 80.0f;
 
     printS("moving to height: ");
-    printI(100);
+    printI(80);
     printS("\r\n");
     follow_trajectory(&controller, n_start, h_start, n_end, h_end);
 
@@ -112,16 +112,16 @@ int main() {
     delay_ms(2000);
 
     n_start[0] = 0.0f;
-    n_start[1] = 0.3f;
+    n_start[1] = 0.0f;
     n_start[2] = 1.0f;
-    h_start = 100.0f;
+    h_start = 80.0f;
     n_end[0] = 0.0f;
     n_end[1] = 0.0f;
     n_end[2] = 1.0f;
     h_end = 129.0f;
 
     printS("moving to height: ");
-    printI(130);
+    printI(129);
     printS("\r\n");
 
     follow_trajectory(&controller, n_start, h_start, n_end, h_end);

@@ -14,9 +14,12 @@
 #define NUM_MOTORS 3
 #define STEPS_PER_REV 3200.0f
 #define ALPHA (6.2831853f / STEPS_PER_REV)
-#define BASE_SPEED 400
+
+/* Motor Behaviour */
+#define BASE_SPEED 200
+#define TRAP_STEPS 50
 
 #define angle_resolution 0.01745329f
-#define height_resolution 1.0f
+#define height_resolution 0.05f
 
 #endif /* CONFIG_H_ */
