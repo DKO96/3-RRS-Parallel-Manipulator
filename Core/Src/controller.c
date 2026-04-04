@@ -53,12 +53,6 @@ static void move_to_pose(MotorController *mc, float n[3], float h,
                     : max_steps;
   }
 
-  printS("sf=");
-  printI((int)(speed_factor * 100));
-  printS(" ms=");
-  printI(max_steps);
-  printS("\r\n");
-
   for (uint8_t i = 0; i < NUM_MOTORS; i++) {
     if (mc->motor[i].steps_remaining == 0) continue;
 
@@ -116,25 +110,86 @@ void follow_trajectory(MotorController *mc, float n_start[3], float h_start,
 
   if (num_steps == 0) return;
 
+  // Precompute first waypoint
+  int32_t next_target[NUM_MOTORS];
+  float t = 1.0f / (float)num_steps;
+  float n[3] = {0.0f, 0.0f, 0.0f};
+  n[0] = (1 - t) * n_start[0] + t * n_end[0];
+  n[1] = (1 - t) * n_start[1] + t * n_end[1];
+  n[2] = (1 - t) * n_start[2] + t * n_end[2];
+
+  float mag = sqrtf(n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
+  n[0] /= mag;
+  n[1] /= mag;
+  n[2] /= mag;
+
+  float h = (1 - t) * h_start + t * h_end;
+
+  float theta[3];
+
+  RRS_ik(n, h, theta);
+
+  for (uint8_t i = 0; i < NUM_MOTORS; i++) {
+    uint32_t steps = angle_to_steps(theta[i]);
+    next_target[i] = (theta[i] >= 0) ? (int32_t)steps : -(int32_t)steps;
+  }
+
   for (uint32_t i = 1; i <= num_steps; i++) {
-    float t = (float)i / (float)num_steps;
-
     float speed_factor = trapezoidal_control(i, num_steps);
+    uint32_t scaled_speed = (uint32_t)(BASE_SPEED / speed_factor);
+    __disable_irq();
 
-    float n[3] = {0.0f, 0.0f, 0.0f};
-    n[0] = (1 - t) * n_start[0] + t * n_end[0];
-    n[1] = (1 - t) * n_start[1] + t * n_end[1];
-    n[2] = (1 - t) * n_start[2] + t * n_end[2];
+    uint32_t max_steps = 0;
+    for (uint8_t j = 0; j < NUM_MOTORS; j++) {
+      int32_t delta = next_target[j] - mc->motor[j].current_steps;
 
-    float mag = sqrtf(n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
-    n[0] /= mag;
-    n[1] /= mag;
-    n[2] /= mag;
+      if (delta < 0) {
+        GPIOB->BSRR = dir_set[j];
+        mc->motor[j].step_dir = -1;
+        mc->motor[j].steps_remaining = (uint32_t)(-delta);
+      } else {
+        GPIOB->BSRR = dir_reset[j];
+        mc->motor[j].step_dir = 1;
+        mc->motor[j].steps_remaining = (uint32_t)delta;
+      }
 
-    float h = (1 - t) * h_start + t * h_end;
+      if (mc->motor[j].steps_remaining > max_steps) {
+        max_steps = mc->motor[j].steps_remaining;
+      }
+    }
 
-    move_to_pose(mc, n, h, speed_factor);
+    for (uint8_t j = 0; j < NUM_MOTORS; j++) {
+      if (mc->motor[j].steps_remaining == 0) continue;
 
+      mc->motor[j].step_period =
+          scaled_speed * max_steps / mc->motor[j].steps_remaining;
+    }
+
+    __enable_irq();
+
+    if (i < num_steps) {
+      float t = (float)(i + 1) / (float)num_steps;
+
+      float n[3] = {0.0f, 0.0f, 0.0f};
+      n[0] = (1 - t) * n_start[0] + t * n_end[0];
+      n[1] = (1 - t) * n_start[1] + t * n_end[1];
+      n[2] = (1 - t) * n_start[2] + t * n_end[2];
+
+      float mag = sqrtf(n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
+      n[0] /= mag;
+      n[1] /= mag;
+      n[2] /= mag;
+
+      float h = (1 - t) * h_start + t * h_end;
+
+      float theta[3];
+      RRS_ik(n, h, theta);
+
+      for (uint8_t j = 0; j < NUM_MOTORS; j++) {
+        uint32_t steps = angle_to_steps(theta[j]);
+        next_target[j] = (theta[j] >= 0) ? (int32_t)steps : -(int32_t)steps;
+      }
+    }
     while (!move_complete(mc))
       ;
   }
