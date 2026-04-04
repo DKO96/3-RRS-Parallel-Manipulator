@@ -53,12 +53,6 @@ static void move_to_pose(MotorController *mc, float n[3], float h,
                     : max_steps;
   }
 
-  printS("sf=");
-  printI((int)(speed_factor * 100));
-  printS(" ms=");
-  printI(max_steps);
-  printS("\r\n");
-
   for (uint8_t i = 0; i < NUM_MOTORS; i++) {
     if (mc->motor[i].steps_remaining == 0) continue;
 
