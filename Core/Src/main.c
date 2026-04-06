@@ -1,4 +1,5 @@
 #include "main.h"
+#include "math.h"
 
 #define LED_ON() (GPIOA->ODR |= GPIO_ODR_OD5)
 #define LED_OFF() (GPIOA->ODR &= ~GPIO_ODR_OD5)
@@ -37,7 +38,8 @@ void TIM1_UP_TIM10_IRQHandler(void) {
   uint32_t resets = 0;
 
   for (uint8_t i = 0; i < NUM_MOTORS; i++) {
-    if (controller.motor[i].steps_remaining == 0) continue;
+    if (controller.motor[i].steps_remaining == 0)
+      continue;
 
     controller.motor[i].step_counter++;
     if (controller.motor[i].step_counter >= controller.motor[i].step_period) {
@@ -82,61 +84,41 @@ int main() {
   float n_end[3];
   float h_end;
 
+  n_start[0] = 0.0f;
+  n_start[1] = 0.0f;
+  n_start[2] = 1.0f;
+  h_start = 128.0f;
+  n_end[0] = 0.371391f;
+  n_end[1] = 0.0f;
+  n_end[2] = 0.928477f;
+  h_end = 120.0f;
+  printS("moving to first position\r\n");
+  follow_trajectory(&controller, n_start, h_start, n_end, h_end);
+
   while (1) {
-    n_start[0] = 0.0f;
+    n_start[0] = 0.371391f;
     n_start[1] = 0.0f;
-    n_start[2] = 1.0f;
-    h_start = 129.0f;
-    n_end[0] = 0.0f;
+    n_start[2] = 0.928477f;
+    h_start = 120.0f;
+    n_end[0] = -0.371391f;
     n_end[1] = 0.0f;
-    n_end[2] = 1.0f;
-    h_end = 80.0f;
-
-    printS("moving to height: ");
-    printI(80);
-    printS("\r\n");
+    n_end[2] = 0.928477f;
+    h_end = 120.0f;
+    printS("moving to second position\r\n");
     follow_trajectory(&controller, n_start, h_start, n_end, h_end);
-
-    for (uint8_t i = 0; i < NUM_MOTORS; i++) {
-      printS("motor ");
-      printI(i);
-      printS(" current: ");
-      printI(controller.motor[i].current_steps);
-      printS(" target: ");
-      printI(controller.motor[i].target_steps);
-      printS(" remaining: ");
-      printI(controller.motor[i].steps_remaining);
-      printS("\r\n");
-    };
 
     delay_ms(2000);
 
-    n_start[0] = 0.0f;
+    n_start[0] = -0.371391f;
     n_start[1] = 0.0f;
-    n_start[2] = 1.0f;
-    h_start = 80.0f;
-    n_end[0] = 0.0f;
+    n_start[2] = 0.928477f;
+    h_start = 120.0f;
+    n_end[0] = 0.371391f;
     n_end[1] = 0.0f;
-    n_end[2] = 1.0f;
-    h_end = 129.0f;
-
-    printS("moving to height: ");
-    printI(129);
-    printS("\r\n");
-
+    n_end[2] = 0.928477f;
+    h_end = 120.0f;
+    printS("moving to third position\r\n");
     follow_trajectory(&controller, n_start, h_start, n_end, h_end);
-
-    for (uint8_t i = 0; i < NUM_MOTORS; i++) {
-      printS("motor ");
-      printI(i);
-      printS(" current: ");
-      printI(controller.motor[i].current_steps);
-      printS(" target: ");
-      printI(controller.motor[i].target_steps);
-      printS(" remaining: ");
-      printI(controller.motor[i].steps_remaining);
-      printS("\r\n");
-    };
 
     delay_ms(2000);
   }

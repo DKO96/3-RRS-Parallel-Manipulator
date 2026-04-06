@@ -26,6 +26,27 @@ static void move_to_pose(MotorController *mc, float n[3], float h,
   float theta[3] = {0, 0, 0};
   RRS_ik(n, h, theta);
 
+  // DEBUG: print IK inputs and outputs
+  // printS("--- move_to_pose ---\r\n");
+  // printS("n: ");
+  // printF(n[0]);
+  // printS(", ");
+  // printF(n[1]);
+  // printS(", ");
+  // printF(n[2]);
+  // printS("\r\n");
+  // printS("h: ");
+  // printF(h);
+  // printS("\r\n");
+
+  // printS("theta: ");
+  // printF(theta[0]);
+  // printS(", ");
+  // printF(theta[1]);
+  // printS(", ");
+  // printF(theta[2]);
+  // printS("\r\n");
+
   __disable_irq();
 
   uint32_t max_steps = 0;
@@ -53,8 +74,24 @@ static void move_to_pose(MotorController *mc, float n[3], float h,
                     : max_steps;
   }
 
+  // DEBUG: print motion plan per motor
+  // for (uint8_t i = 0; i < NUM_MOTORS; i++) {
+  //   printS("M");
+  //   printI(i);
+  //   printS(" cur=");
+  //   printI(mc->motor[i].current_steps);
+  //   printS(" tgt=");
+  //   printI(mc->motor[i].target_steps);
+  //   printS(" rem=");
+  //   printI(mc->motor[i].steps_remaining);
+  //   printS(" dir=");
+  //   printI(mc->motor[i].step_dir);
+  //   printS("\r\n");
+  // }
+
   for (uint8_t i = 0; i < NUM_MOTORS; i++) {
-    if (mc->motor[i].steps_remaining == 0) continue;
+    if (mc->motor[i].steps_remaining == 0)
+      continue;
 
     uint32_t scaled_speed = (uint32_t)(BASE_SPEED / speed_factor);
 
@@ -72,7 +109,7 @@ uint8_t move_complete(MotorController *mc) {
 }
 
 static float trapezoidal_control(uint32_t i, uint32_t num_steps) {
-  float min_speed = 0.5f;
+  float min_speed = 0.2f;
 
   /* Triangular Profile */
   if (num_steps <= 2 * TRAP_STEPS) {
@@ -108,7 +145,8 @@ void follow_trajectory(MotorController *mc, float n_start[3], float h_start,
   uint32_t num_steps =
       (angle_steps > height_steps) ? angle_steps : height_steps;
 
-  if (num_steps == 0) return;
+  if (num_steps == 0)
+    return;
 
   // Precompute first waypoint
   int32_t next_target[NUM_MOTORS];
@@ -159,7 +197,8 @@ void follow_trajectory(MotorController *mc, float n_start[3], float h_start,
     }
 
     for (uint8_t j = 0; j < NUM_MOTORS; j++) {
-      if (mc->motor[j].steps_remaining == 0) continue;
+      if (mc->motor[j].steps_remaining == 0)
+        continue;
 
       mc->motor[j].step_period =
           scaled_speed * max_steps / mc->motor[j].steps_remaining;
@@ -194,3 +233,41 @@ void follow_trajectory(MotorController *mc, float n_start[3], float h_start,
       ;
   }
 }
+
+// void follow_trajectory(MotorController *mc, float n_start[3], float h_start,
+//                        float n_end[3], float h_end) {
+//   // Calculate number of steps
+//   float angle_change = acosf(vec3_dot(n_start, n_end));
+//   float height_change = fabsf(h_end - h_start);
+
+//   uint32_t angle_steps = (uint32_t)(angle_change / angle_resolution);
+//   uint32_t height_steps = (uint32_t)(height_change / height_resolution);
+//   uint32_t num_steps =
+//       (angle_steps > height_steps) ? angle_steps : height_steps;
+
+//   if (num_steps == 0)
+//     return;
+
+//   for (uint32_t i = 1; i <= num_steps; i++) {
+//     float t = (float)i / (float)num_steps;
+
+//     float speed_factor = trapezoidal_control(i, num_steps);
+
+//     float n[3] = {0.0f, 0.0f, 0.0f};
+//     n[0] = (1 - t) * n_start[0] + t * n_end[0];
+//     n[1] = (1 - t) * n_start[1] + t * n_end[1];
+//     n[2] = (1 - t) * n_start[2] + t * n_end[2];
+
+//     float mag = sqrtf(n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
+//     n[0] /= mag;
+//     n[1] /= mag;
+//     n[2] /= mag;
+
+//     float h = (1 - t) * h_start + t * h_end;
+
+//     move_to_pose(mc, n, h, speed_factor);
+
+//     while (!move_complete(mc))
+//       ;
+//   }
+// }

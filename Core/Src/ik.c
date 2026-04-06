@@ -1,6 +1,7 @@
 #include "config.h"
 #include "math.h"
 #include "stm32f446xx.h"
+#include "uart.h"
 
 static float p[3] = {PLATFORM, 0.0f, 0.0f};
 static const float alpha[3] = {
@@ -42,7 +43,8 @@ float vec3_dot(float a[3], float b[3]) {
 void RRS_ik(float n[3], float h, float theta[3]) {
   float psi_y = asinf(n[0]);
   float psi_x = asinf(-n[1] / cosf(psi_y));
-  float psi_z = atan2(-sinf(psi_x) * sinf(psi_y), cosf(psi_x) + cosf(psi_y));
+  float psi_z =
+      atanf((-sinf(psi_x) * sinf(psi_y)) / (cosf(psi_x) + cosf(psi_y)));
 
   float sx = sinf(psi_x);
   float cx = cosf(psi_x);
@@ -66,7 +68,7 @@ void RRS_ik(float n[3], float h, float theta[3]) {
 
   float Q[3];
   Q[0] = (PLATFORM * (R[0][0] - R[1][1])) * 0.5f;
-  Q[1] = -R[0][1] * PLATFORM;
+  Q[1] = -R[1][0] * PLATFORM;
   Q[2] = h;
 
   for (uint8_t i = 0; i < 3; i++) {
@@ -98,7 +100,32 @@ void RRS_ik(float n[3], float h, float theta[3]) {
     float C = S[0] * S[0] - 2 * BASE * S[0] * ca +
               ca * ca * (BASE * BASE + L1 * L1 - L2 * L2 + S[2] * S[2]);
 
-    float t = (-B + sqrtf(A * A + B * B - C * C)) / (C - A);
+    // float t = (-B + sqrtf(A * A + B * B - C * C)) / (C - A);
+    // theta[i] = -2 * atanf(t);
+
+    float disc = A * A + B * B - C * C;
+
+    // DEBUG
+    // if (i == 0) {
+    //   printS("A=");
+    //   printF(A);
+    //   printS(" B=");
+    //   printF(B);
+    //   printS(" C=");
+    //   printF(C);
+    //   printS(" disc=");
+    //   printF(disc);
+    //   printS(" C-A=");
+    //   printF(C - A);
+    //   printS("\r\n");
+    // }
+
+    if (disc < 0.0f) {
+      // Clamp to zero — the pose is at or just beyond the workspace boundary
+      disc = 0.0f;
+    }
+
+    float t = (-B + sqrtf(disc)) / (C - A);
     theta[i] = -2 * atanf(t);
   }
 }
