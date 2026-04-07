@@ -42,9 +42,18 @@ float vec3_dot(float a[3], float b[3]) {
 
 void RRS_ik(float n[3], float h, float theta[3]) {
   float psi_y = asinf(n[0]);
+
+  if (fabsf(psi_y) == 1)
+    return;
+
   float psi_x = asinf(-n[1] / cosf(psi_y));
   float psi_z =
       atanf((-sinf(psi_x) * sinf(psi_y)) / (cosf(psi_x) + cosf(psi_y)));
+
+  // DEBUG: print psi z
+  printS("psi_z=");
+  printF(psi_z);
+  printS("\r\n");
 
   float sx = sinf(psi_x);
   float cx = cosf(psi_x);
@@ -105,7 +114,7 @@ void RRS_ik(float n[3], float h, float theta[3]) {
 
     float disc = A * A + B * B - C * C;
 
-    // DEBUG
+    // DEBUG: output A, B, C
     // if (i == 0) {
     //   printS("A=");
     //   printF(A);
@@ -121,11 +130,24 @@ void RRS_ik(float n[3], float h, float theta[3]) {
     // }
 
     if (disc < 0.0f) {
-      // Clamp to zero — the pose is at or just beyond the workspace boundary
+      printS("WARN: disc<0 motor ");
+      printI(i);
+      printS(" disc=");
+      printF(disc);
+      printS("\r\n");
       disc = 0.0f;
     }
 
     float t = (-B + sqrtf(disc)) / (C - A);
     theta[i] = -2 * atanf(t);
   }
+
+  // DEBUG: output theta
+  printS("theta: ");
+  printF(RAD_TO_DEG(theta[0]));
+  printS(" \t");
+  printF(RAD_TO_DEG(theta[1]));
+  printS(" \t");
+  printF(RAD_TO_DEG(theta[2]));
+  printS("\r\n");
 }

@@ -3,7 +3,8 @@
 
 /* Math */
 #define M_PI 3.14159265358979323846
-#define DEG_TO_RAD(deg) ((deg) * (M_PI / 180.f))
+#define DEG_TO_RAD(deg) ((deg) * (M_PI / 180.0f))
+#define RAD_TO_DEG(rad) ((rad) * (180.0f / M_PI))
 
 /* Robot Geometry */
 #define L1 65.0f
@@ -16,10 +17,12 @@
 #define ALPHA (6.2831853f / STEPS_PER_REV)
 
 /* Motor Behaviour */
-#define BASE_SPEED 200
+#define BASE_SPEED 600
 #define TRAP_STEPS 100
 
-#define angle_resolution 0.01745329f
-#define height_resolution 0.05f
+// #define angle_resolution 0.00872665f
+// #define height_resolution 0.05f
+#define angle_resolution 0.0872665f
+#define height_resolution 0.5f
 
 #endif /* CONFIG_H_ */

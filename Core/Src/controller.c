@@ -181,6 +181,13 @@ void follow_trajectory(MotorController *mc, float n_start[3], float h_start,
     for (uint8_t j = 0; j < NUM_MOTORS; j++) {
       int32_t delta = next_target[j] - mc->motor[j].current_steps;
 
+      // DEBUG: print delta
+      // printS("M");
+      // printI(j);
+      // printS(" d=");
+      // printI(delta);
+      // printS(" ");
+
       if (delta < 0) {
         GPIOB->BSRR = dir_set[j];
         mc->motor[j].step_dir = -1;
@@ -195,6 +202,7 @@ void follow_trajectory(MotorController *mc, float n_start[3], float h_start,
         max_steps = mc->motor[j].steps_remaining;
       }
     }
+    // printS("\r\n");
 
     for (uint8_t j = 0; j < NUM_MOTORS; j++) {
       if (mc->motor[j].steps_remaining == 0)
@@ -205,6 +213,17 @@ void follow_trajectory(MotorController *mc, float n_start[3], float h_start,
     }
 
     __enable_irq();
+
+    // DEBUG: output steps remaining before move
+    // printS("W");
+    // printI(i);
+    // printS(" rem: ");
+    // printI(mc->motor[0].steps_remaining);
+    // printS(" ");
+    // printI(mc->motor[1].steps_remaining);
+    // printS(" ");
+    // printI(mc->motor[2].steps_remaining);
+    // printS("\r\n");
 
     if (i < num_steps) {
       float t = (float)(i + 1) / (float)num_steps;
