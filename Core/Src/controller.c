@@ -164,7 +164,6 @@ void follow_trajectory(MotorController *mc, float n_start[3], float h_start,
   float h = (1 - t) * h_start + t * h_end;
 
   float theta[3];
-
   RRS_ik(n, h, theta);
 
   for (uint8_t i = 0; i < NUM_MOTORS; i++) {
