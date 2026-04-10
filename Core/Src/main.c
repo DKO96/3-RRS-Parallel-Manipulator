@@ -8,6 +8,9 @@
 #include "semphr.h"
 #include "task.h"
 
+QueueHandle_t ik_queue;
+SemaphoreHandle_t motion_completel_semphr;
+
 #define LED_ON() (GPIOA->ODR |= GPIO_ODR_OD5)
 #define LED_OFF() (GPIOA->ODR &= ~GPIO_ODR_OD5)
 
@@ -72,6 +75,8 @@ void TIM2_IRQHandler(void) {
   GPIOA->BSRR = controller.pending_resets;
 }
 
+static void ik_task(void *pvParameters) {}
+
 int main() {
   /* Initialize hardware */
   system_init();
@@ -86,129 +91,18 @@ int main() {
   while (safety_flag)
     ;
 
-  float n_start[3];
-  float h_start;
-  float n_end[3];
-  float h_end;
+  // while (1) {
+  // }
 
-  // move to home
-  n_start[0] = 0.0f;
-  n_start[1] = 0.0f;
-  n_start[2] = 1.0f;
-  h_start = 130.0f;
-  n_end[0] = 0.0f;
-  n_end[1] = 0.0f;
-  n_end[2] = 1.0f;
-  h_end = 110.0f;
-  printS("moving to home position\r\n");
-  follow_trajectory(&controller, n_start, h_start, n_end, h_end);
-  delay_ms(2000);
+  /* Initialize rtos */
+  ik_queue = xQueueCreate(1, 1);
 
-  while (1) {
-    // move to +x from home
-    n_start[0] = 0.0f;
-    n_start[1] = 0.0f;
-    n_start[2] = 1.0f;
-    h_start = 110.0f;
-    n_end[0] = 0.33035f;
-    n_end[1] = 0.0f;
-    n_end[2] = 0.943858f;
-    h_end = 110.0f;
-    printS("moving to +x position\r\n");
-    follow_trajectory(&controller, n_start, h_start, n_end, h_end);
-    delay_ms(2000);
+  motion_completel_semphr = xSemaphoreCreateBinary();
 
-    // move to home
-    n_start[0] = 0.33035f;
-    n_start[1] = 0.0f;
-    n_start[2] = 0.943858f;
-    h_start = 110.0f;
-    n_end[0] = 0.0f;
-    n_end[1] = 0.0f;
-    n_end[2] = 1.0f;
-    h_end = 110.0f;
-    printS("moving to home position\r\n");
-    follow_trajectory(&controller, n_start, h_start, n_end, h_end);
-    delay_ms(2000);
+  xTaskCreate();
 
-    // move to -y from home
-    n_start[0] = 0.0f;
-    n_start[1] = 0.0f;
-    n_start[2] = 1.0f;
-    h_start = 110.0f;
-    n_end[0] = 0.0f;
-    n_end[1] = -0.33035f;
-    n_end[2] = 0.943858f;
-    h_end = 110.0f;
-    printS("moving to -y position\r\n");
-    follow_trajectory(&controller, n_start, h_start, n_end, h_end);
-    delay_ms(2000);
-
-    // move to home
-    n_start[0] = 0.0f;
-    n_start[1] = -0.33035f;
-    n_start[2] = 0.943858f;
-    h_start = 110.0f;
-    n_end[0] = 0.0f;
-    n_end[1] = 0.0f;
-    n_end[2] = 1.0f;
-    h_end = 110.0f;
-    printS("moving to home position\r\n");
-    follow_trajectory(&controller, n_start, h_start, n_end, h_end);
-    delay_ms(2000);
-
-    // move to -x from home
-    n_start[0] = 0.0f;
-    n_start[1] = 0.0f;
-    n_start[2] = 1.0f;
-    h_start = 110.0f;
-    n_end[0] = -0.33035f;
-    n_end[1] = 0.0f;
-    n_end[2] = 0.943858f;
-    h_end = 110.0f;
-    printS("moving to -x position\r\n");
-    follow_trajectory(&controller, n_start, h_start, n_end, h_end);
-    delay_ms(2000);
-
-    // move to home
-    n_start[0] = -0.33035f;
-    n_start[1] = 0.0f;
-    n_start[2] = 0.943858f;
-    h_start = 110.0f;
-    n_end[0] = 0.0f;
-    n_end[1] = 0.0f;
-    n_end[2] = 1.0f;
-    h_end = 110.0f;
-    printS("moving to home position\r\n");
-    follow_trajectory(&controller, n_start, h_start, n_end, h_end);
-    delay_ms(2000);
-
-    // move to -y from home
-    n_start[0] = 0.0f;
-    n_start[1] = 0.0f;
-    n_start[2] = 1.0f;
-    h_start = 110.0f;
-    n_end[0] = 0.0f;
-    n_end[1] = 0.33035f;
-    n_end[2] = 0.943858f;
-    h_end = 110.0f;
-    printS("moving to +y position\r\n");
-    follow_trajectory(&controller, n_start, h_start, n_end, h_end);
-    delay_ms(2000);
-
-    // move to home
-    n_start[0] = 0.0f;
-    n_start[1] = 0.33035f;
-    n_start[2] = 0.943858f;
-    h_start = 110.0f;
-    n_end[0] = 0.0f;
-    n_end[1] = 0.0f;
-    n_end[2] = 1.0f;
-    h_end = 110.0f;
-    printS("moving to home position\r\n");
-    follow_trajectory(&controller, n_start, h_start, n_end, h_end);
-    delay_ms(2000);
-  }
+  /* Start scheduler */
+  vTaskStartScheduler();
 
   return 0;
 }
