@@ -4,6 +4,7 @@
 #include "config.h"
 #include "controller.h"
 #include "ik.h"
+#include "trajectory.h"
 
 // Peripherals
 #include "exti.h"

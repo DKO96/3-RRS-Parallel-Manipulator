@@ -1,15 +1,12 @@
 #include "main.h"
 
-#include "math.h"
-
 // FreeRTOS
 #include "FreeRTOS.h"
 #include "queue.h"
 #include "semphr.h"
 #include "task.h"
 
-QueueHandle_t ik_queue;
-SemaphoreHandle_t motion_completel_semphr;
+QueueHandle_t traj_queue;
 
 #define LED_ON() (GPIOA->ODR |= GPIO_ODR_OD5)
 #define LED_OFF() (GPIOA->ODR &= ~GPIO_ODR_OD5)
@@ -75,7 +72,7 @@ void TIM2_IRQHandler(void) {
   GPIOA->BSRR = controller.pending_resets;
 }
 
-static void ik_task(void *pvParameters) {}
+static void trajectory_task(void *pvParameters) {}
 
 int main() {
   /* Initialize hardware */
@@ -95,11 +92,7 @@ int main() {
   // }
 
   /* Initialize rtos */
-  ik_queue = xQueueCreate(1, 1);
-
-  motion_completel_semphr = xSemaphoreCreateBinary();
-
-  xTaskCreate();
+  traj_queue = xQueueCreate(TRAJ_BUF_SIZE, sizeof(TrajectoryPoint_t));
 
   /* Start scheduler */
   vTaskStartScheduler();

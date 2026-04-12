@@ -20,9 +20,15 @@
 #define BASE_SPEED 600
 #define TRAP_STEPS 100
 
-// #define angle_resolution 0.00872665f
-// #define height_resolution 0.05f
 #define angle_resolution 0.0872665f
 #define height_resolution 0.5f
+
+#define CONTROL_FREQ 1000.0f
+#define CONTROL_DT (1.0f / CONTROL_FREQ)
+
+#define VEL_MAX 167.0f
+#define ACC_MAX 1000.0f
+
+#define TRAJ_BUF_SIZE 64
 
 #endif /* CONFIG_H_ */
