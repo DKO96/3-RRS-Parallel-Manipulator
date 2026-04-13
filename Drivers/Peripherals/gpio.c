@@ -77,6 +77,42 @@ void gpio_stepper3(void) {
   GPIOB->MODER |= GPIO_MODER_MODE15_0;
 }
 
+void gpio_spi1(void) {
+  /* Configure PA5, PA6, PA7, PB6 for SPI1
+      PA5 -> SPI1_SCK (AF5)
+      PA6 -> SPI1_MISO (AF5)
+      PA7 -> SPI1_MOSI (AF5)
+      PA9 -> SPI1_CS (GP)
+  */
+
+  GPIOA->MODER &= ~(GPIO_MODER_MODE5 | GPIO_MODER_MODE6 | GPIO_MODER_MODE7 |
+                    GPIO_MODER_MODE9);
+  GPIOA->MODER |= ((2U << GPIO_MODER_MODE5_Pos) | (2U << GPIO_MODER_MODE6_Pos) |
+                   (2U << GPIO_MODER_MODE7_Pos) | (1U << GPIO_MODER_MODE9_Pos));
+
+  GPIOA->AFR[0] &= ~(GPIO_AFRL_AFSEL5 | GPIO_AFRL_AFSEL6 | GPIO_AFRL_AFSEL7);
+  GPIOA->AFR[0] |=
+      ((5U << GPIO_AFRL_AFSEL5_Pos) | (5U << GPIO_AFRL_AFSEL6_Pos) |
+       (5U << GPIO_AFRL_AFSEL7_Pos));
+
+  GPIOA->OTYPER &= ~(GPIO_OTYPER_OT5 | GPIO_OTYPER_OT6 | GPIO_OTYPER_OT7);
+
+  GPIOA->OSPEEDR &= ~((GPIO_OSPEEDR_OSPEED5) | (GPIO_OSPEEDR_OSPEED6) |
+                      (GPIO_OSPEEDR_OSPEED7));
+  GPIOA->OSPEEDR |=
+      ((3U << GPIO_OSPEEDR_OSPEED5_Pos) | (3U << GPIO_OSPEEDR_OSPEED6_Pos) |
+       (3U << GPIO_OSPEEDR_OSPEED7_Pos));
+
+  GPIOA->PUPDR &= ~((GPIO_PUPDR_PUPD5) | (GPIO_PUPDR_PUPD6) |
+                    (GPIO_PUPDR_PUPD7) | (GPIO_PUPDR_PUPD9));
+  GPIOA->PUPDR |= ((1U << GPIO_PUPDR_PUPD5_Pos) | (1U << GPIO_PUPDR_PUPD6_Pos) |
+                   (1U << GPIO_PUPDR_PUPD7_Pos) | (1U << GPIO_PUPDR_PUPD9_Pos));
+
+  // Setting PA9 high before enabling SPI
+  // Prevents the chip from being falsely selected
+  GPIOA->BSRR = GPIO_BSRR_BS9;
+}
+
 void gpio_init(void) {
   // Enable clock access to GPIO A, B
   RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
@@ -88,4 +124,5 @@ void gpio_init(void) {
   gpio_stepper1();
   gpio_stepper2();
   gpio_stepper3();
+  gpio_spi1();
 }

@@ -8,8 +8,12 @@
 // Peripherals
 #include "exti.h"
 #include "gpio.h"
+#include "spi.h"
 #include "timer.h"
 #include "uart.h"
+
+// Hardware
+#include "amt222b.h"
 
 extern const uint32_t step_set[NUM_MOTORS];
 extern const uint32_t step_reset[NUM_MOTORS];

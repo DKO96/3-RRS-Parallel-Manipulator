@@ -97,6 +97,21 @@ static void trajectory_task(void *pvParameters) {
   }
 }
 
+static void encoder_task(void *pvParameters) {
+  TickType_t last_wake = xTaskGetTickCount();
+  uint16_t position;
+
+  for (;;) {
+    amt222b_read(&position);
+
+    printS("position: ");
+    printI(position);
+    printS("\r\n");
+
+    vTaskDelayUntil(&last_wake, pdMS_TO_TICKS(100));
+  }
+}
+
 static void controller_task(void *pvParameters) {
   TickType_t last_wake = xTaskGetTickCount();
 
@@ -153,6 +168,7 @@ int main() {
   uart_init(USART2);
   timer1_init();
   timer2_init();
+  spi1_init();
 
   printS("\r\n=========PROGRAM START=============\r\n");
   LED_ON();
@@ -163,6 +179,7 @@ int main() {
   traj_queue = xQueueCreate(TRAJ_BUF_SIZE, sizeof(TrajectoryPoint_t));
 
   xTaskCreate(trajectory_task, "traj", 512, NULL, 2, NULL);
+  xTaskCreate(encoder_task, "encd", 128, NULL, 4, NULL);
   xTaskCreate(controller_task, "ctrl", 256, NULL, 3, NULL);
 
   /* Start scheduler */
