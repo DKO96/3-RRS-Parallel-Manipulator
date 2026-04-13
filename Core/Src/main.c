@@ -83,21 +83,75 @@ void TIM2_IRQHandler(void) {
 }
 
 static void trajectory_task(void *pvParameters) {
+  (void)pvParameters;
   float n_start[3] = {0.0f, 0.0f, 1.0f};
   float h_start = 130.0f;
-
-  // float n_end[3] = {0.371391f, 0.0f, 0.928477f};
   float n_end[3] = {0.0f, 0.0f, 1.0f};
   float h_end = 110.0f;
-
   generate_trajectory(n_start, h_start, n_end, h_end, traj_queue);
+  vTaskDelay(2000);
+
+  n_start[0] = 0.0f;
+  n_start[1] = 0.0f;
+  n_start[2] = 1.0f;
+  h_start = 110.0f;
+  n_end[0] = 0.371391f;
+  n_end[1] = 0.0f;
+  n_end[2] = 0.928477f;
+  h_end = 110.0f;
+  generate_trajectory(n_start, h_start, n_end, h_end, traj_queue);
+  vTaskDelay(2000);
 
   for (;;) {
-    vTaskDelay(portMAX_DELAY);
+    n_start[0] = 0.371391f;
+    n_start[1] = 0.0f;
+    n_start[2] = 0.928477f;
+    h_start = 110.0f;
+    n_end[0] = 0.0f;
+    n_end[1] = 0.371391f;
+    n_end[2] = 0.928477f;
+    h_end = 110.0f;
+    generate_trajectory(n_start, h_start, n_end, h_end, traj_queue);
+    vTaskDelay(2000);
+
+    n_start[0] = 0.0f;
+    n_start[1] = 0.371391f;
+    n_start[2] = 0.928477f;
+    h_start = 110.0f;
+    n_end[0] = -0.371391f;
+    n_end[1] = 0.0f;
+    n_end[2] = 0.928477f;
+    h_end = 110.0f;
+    generate_trajectory(n_start, h_start, n_end, h_end, traj_queue);
+    vTaskDelay(2000);
+
+    n_start[0] = -0.371391f;
+    n_start[1] = 0.0f;
+    n_start[2] = 0.928477f;
+    h_start = 110.0f;
+    n_end[0] = 0.0f;
+    n_end[1] = -0.371391f;
+    n_end[2] = 0.928477f;
+    h_end = 110.0f;
+    generate_trajectory(n_start, h_start, n_end, h_end, traj_queue);
+    vTaskDelay(2000);
+
+    n_start[0] = 0.0f;
+    n_start[1] = -0.371391f;
+    n_start[2] = 0.928477f;
+    h_start = 110.0f;
+    n_end[0] = 0.371391f;
+    n_end[1] = 0.0f;
+    n_end[2] = 0.928477f;
+    h_end = 110.0f;
+    generate_trajectory(n_start, h_start, n_end, h_end, traj_queue);
+    vTaskDelay(2000);
   }
 }
 
 static void encoder_task(void *pvParameters) {
+  (void)pvParameters;
+
   TickType_t last_wake = xTaskGetTickCount();
   uint16_t position;
 
@@ -113,6 +167,8 @@ static void encoder_task(void *pvParameters) {
 }
 
 static void controller_task(void *pvParameters) {
+  (void)pvParameters;
+
   TickType_t last_wake = xTaskGetTickCount();
 
   for (;;) {
