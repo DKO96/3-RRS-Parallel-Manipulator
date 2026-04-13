@@ -43,17 +43,11 @@ float vec3_dot(float a[3], float b[3]) {
 void RRS_ik(float n[3], float h, float theta[3]) {
   float psi_y = asinf(n[0]);
 
-  if (fabsf(psi_y) == 1)
-    return;
+  if (fabsf(psi_y) == 1) return;
 
   float psi_x = asinf(-n[1] / cosf(psi_y));
   float psi_z =
       atanf((-sinf(psi_x) * sinf(psi_y)) / (cosf(psi_x) + cosf(psi_y)));
-
-  // DEBUG: print psi z
-  printS("psi_z=");
-  printF(psi_z);
-  printS("\r\n");
 
   float sx = sinf(psi_x);
   float cx = cosf(psi_x);
@@ -143,11 +137,11 @@ void RRS_ik(float n[3], float h, float theta[3]) {
   }
 
   // DEBUG: output theta
-  printS("theta: ");
-  printF(RAD_TO_DEG(theta[0]));
-  printS(" \t");
-  printF(RAD_TO_DEG(theta[1]));
-  printS(" \t");
-  printF(RAD_TO_DEG(theta[2]));
-  printS("\r\n");
+  // printS("theta: ");
+  // printF(RAD_TO_DEG(theta[0]));
+  // printS(" \t");
+  // printF(RAD_TO_DEG(theta[1]));
+  // printS(" \t");
+  // printF(RAD_TO_DEG(theta[2]));
+  // printS("\r\n");
 }

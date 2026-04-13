@@ -4,12 +4,22 @@
 #include "FreeRTOS.h"
 #include "queue.h"
 #include "semphr.h"
+#include "stm32f446xx.h"
 #include "task.h"
 
 QueueHandle_t traj_queue;
 
 #define LED_ON() (GPIOA->ODR |= GPIO_ODR_OD5)
 #define LED_OFF() (GPIOA->ODR &= ~GPIO_ODR_OD5)
+
+const uint32_t step_set[NUM_MOTORS] = {STEP_SET_PIN_0, STEP_SET_PIN_1,
+                                       STEP_SET_PIN_2};
+const uint32_t step_reset[NUM_MOTORS] = {STEP_RESET_PIN_0, STEP_RESET_PIN_1,
+                                         STEP_RESET_PIN_2};
+static const uint32_t dir_set[NUM_MOTORS] = {DIR_SET_PIN_0, DIR_SET_PIN_1,
+                                             DIR_SET_PIN_2};
+static const uint32_t dir_reset[NUM_MOTORS] = {DIR_RESET_PIN_0, DIR_RESET_PIN_1,
+                                               DIR_RESET_PIN_2};
 
 /* Initialize motor*/
 MotorController controller = {
@@ -72,7 +82,68 @@ void TIM2_IRQHandler(void) {
   GPIOA->BSRR = controller.pending_resets;
 }
 
-static void trajectory_task(void *pvParameters) {}
+static void trajectory_task(void *pvParameters) {
+  float n_start[3] = {0.0f, 0.0f, 1.0f};
+  float h_start = 130.0f;
+
+  // float n_end[3] = {0.371391f, 0.0f, 0.928477f};
+  float n_end[3] = {0.0f, 0.0f, 1.0f};
+  float h_end = 110.0f;
+
+  generate_trajectory(n_start, h_start, n_end, h_end, traj_queue);
+
+  for (;;) {
+    vTaskDelay(portMAX_DELAY);
+  }
+}
+
+static void controller_task(void *pvParameters) {
+  TickType_t last_wake = xTaskGetTickCount();
+
+  for (;;) {
+    vTaskDelayUntil(&last_wake, pdMS_TO_TICKS(10));
+
+    TrajectoryPoint_t point;
+    if (xQueueReceive(traj_queue, &point, 0) == pdTRUE) {
+      __disable_irq();
+
+      uint32_t max_steps = 0;
+      for (uint8_t i = 0; i < NUM_MOTORS; i++) {
+        int32_t delta =
+            point.target_position[i] - controller.motor[i].current_steps;
+
+        if (delta < 0) {
+          GPIOB->BSRR = dir_set[i];
+          controller.motor[i].step_dir = -1;
+          controller.motor[i].steps_remaining = (uint32_t)(-delta);
+        } else {
+          GPIOB->BSRR = dir_reset[i];
+          controller.motor[i].step_dir = 1;
+          controller.motor[i].steps_remaining = (uint32_t)(delta);
+        }
+
+        if (controller.motor[i].steps_remaining > max_steps) {
+          max_steps = controller.motor[i].steps_remaining;
+        }
+      }
+
+      for (uint8_t i = 0; i < NUM_MOTORS; i++) {
+        if (controller.motor[i].steps_remaining == 0) continue;
+
+        controller.motor[i].step_period =
+            TICKS_PER_CONTROL / controller.motor[i].steps_remaining;
+
+        if (controller.motor[i].step_period == 0) {
+          controller.motor[i].step_period = 1;
+        }
+
+        // controller.motor[i].step_counter = 0;
+      }
+
+      __enable_irq();
+    }
+  }
+}
 
 int main() {
   /* Initialize hardware */
@@ -88,11 +159,11 @@ int main() {
   while (safety_flag)
     ;
 
-  // while (1) {
-  // }
-
   /* Initialize rtos */
   traj_queue = xQueueCreate(TRAJ_BUF_SIZE, sizeof(TrajectoryPoint_t));
+
+  xTaskCreate(trajectory_task, "traj", 512, NULL, 2, NULL);
+  xTaskCreate(controller_task, "ctrl", 256, NULL, 3, NULL);
 
   /* Start scheduler */
   vTaskStartScheduler();

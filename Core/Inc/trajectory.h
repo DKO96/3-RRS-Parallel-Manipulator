@@ -1,7 +1,9 @@
 #ifndef TRAJECTORY_H_
 #define TRAJECTORY_H_
 
+#include "FreeRTOS.h"
 #include "config.h"
+#include "queue.h"
 #include "stm32f446xx.h"
 
 typedef struct {
@@ -25,5 +27,8 @@ typedef struct {
 
 void trap_profile_compute(TrapezoidalProfile_t *p, float distance);
 float trap_progress(TrapezoidalProfile_t *p, float time);
+
+void generate_trajectory(float n_start[3], float h_start, float n_end[3],
+                         float h_end, QueueHandle_t q);
 
 #endif /* TRAJECTORY_H_ */

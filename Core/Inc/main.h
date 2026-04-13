@@ -2,7 +2,6 @@
 #define MAIN_H_
 
 #include "config.h"
-#include "controller.h"
 #include "ik.h"
 #include "trajectory.h"
 
@@ -11,6 +10,23 @@
 #include "gpio.h"
 #include "timer.h"
 #include "uart.h"
+
+extern const uint32_t step_set[NUM_MOTORS];
+extern const uint32_t step_reset[NUM_MOTORS];
+
+typedef struct {
+  volatile uint32_t step_period;
+  volatile uint32_t step_counter;
+  volatile uint32_t steps_remaining;
+  volatile int32_t current_steps;
+  volatile int32_t target_steps;
+  volatile int8_t step_dir;
+} Motor;
+
+typedef struct {
+  Motor motor[NUM_MOTORS];
+  volatile uint32_t pending_resets;
+} MotorController;
 
 /**
  * @brief Initialize system clock for 180MHz
