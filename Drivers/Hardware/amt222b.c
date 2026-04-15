@@ -3,8 +3,8 @@
 #include "main.h"
 #include "spi.h"
 
-void amt222b_read(uint16_t *position) {
-  GPIOA->BSRR = GPIO_BSRR_BR9;
+void amt222b_read(uint8_t pin, uint16_t *position) {
+  GPIOC->BSRR = (1U << (pin + 16));
   delay_us(3);
 
   uint8_t high = spi_transfer(0x00);
@@ -12,7 +12,7 @@ void amt222b_read(uint16_t *position) {
   uint8_t low = spi_transfer(0x00);
 
   delay_us(3);
-  GPIOA->BSRR = GPIO_BSRR_BS9;
+  GPIOC->BSRR = (1U << pin);
 
   // Odd parity over odd-position bits
   uint8_t k1 = !(((high >> 5) ^ (high >> 3) ^ (high >> 1) ^ (low >> 7) ^

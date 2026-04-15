@@ -82,13 +82,16 @@ void gpio_spi1(void) {
       PA5 -> SPI1_SCK (AF5)
       PA6 -> SPI1_MISO (AF5)
       PA7 -> SPI1_MOSI (AF5)
-      PA9 -> SPI1_CS (GP)
+
+      PA8 -> SPI1_CS (GP)
+      PA6 -> SPI1_CS (GP)
+      PA5 -> SPI1_CS (GP)
   */
 
-  GPIOA->MODER &= ~(GPIO_MODER_MODE5 | GPIO_MODER_MODE6 | GPIO_MODER_MODE7 |
-                    GPIO_MODER_MODE9);
+  // Configure SPI1
+  GPIOA->MODER &= ~(GPIO_MODER_MODE5 | GPIO_MODER_MODE6 | GPIO_MODER_MODE7);
   GPIOA->MODER |= ((2U << GPIO_MODER_MODE5_Pos) | (2U << GPIO_MODER_MODE6_Pos) |
-                   (2U << GPIO_MODER_MODE7_Pos) | (1U << GPIO_MODER_MODE9_Pos));
+                   (2U << GPIO_MODER_MODE7_Pos));
 
   GPIOA->AFR[0] &= ~(GPIO_AFRL_AFSEL5 | GPIO_AFRL_AFSEL6 | GPIO_AFRL_AFSEL7);
   GPIOA->AFR[0] |=
@@ -103,20 +106,30 @@ void gpio_spi1(void) {
       ((3U << GPIO_OSPEEDR_OSPEED5_Pos) | (3U << GPIO_OSPEEDR_OSPEED6_Pos) |
        (3U << GPIO_OSPEEDR_OSPEED7_Pos));
 
-  GPIOA->PUPDR &= ~((GPIO_PUPDR_PUPD5) | (GPIO_PUPDR_PUPD6) |
-                    (GPIO_PUPDR_PUPD7) | (GPIO_PUPDR_PUPD9));
+  GPIOA->PUPDR &=
+      ~((GPIO_PUPDR_PUPD5) | (GPIO_PUPDR_PUPD6) | (GPIO_PUPDR_PUPD7));
   GPIOA->PUPDR |= ((1U << GPIO_PUPDR_PUPD5_Pos) | (1U << GPIO_PUPDR_PUPD6_Pos) |
-                   (1U << GPIO_PUPDR_PUPD7_Pos) | (1U << GPIO_PUPDR_PUPD9_Pos));
+                   (1U << GPIO_PUPDR_PUPD7_Pos));
 
-  // Setting PA9 high before enabling SPI
+  // Configure CS pins
+  GPIOC->MODER &= ~(GPIO_MODER_MODE8 | GPIO_MODER_MODE6 | GPIO_MODER_MODE5);
+  GPIOC->MODER |= ((1U << GPIO_MODER_MODE8_Pos) | (1U << GPIO_MODER_MODE6_Pos) |
+                   (1U << GPIO_MODER_MODE5_Pos));
+
+  GPIOC->PUPDR &= ~(GPIO_MODER_MODE8 | GPIO_MODER_MODE6 | GPIO_MODER_MODE5);
+  GPIOC->PUPDR |= ((1U << GPIO_PUPDR_PUPD8_Pos) | (1U << GPIO_PUPDR_PUPD6_Pos) |
+                   (1U << GPIO_PUPDR_PUPD5_Pos));
+
+  // Setting PC high before enabling SPI
   // Prevents the chip from being falsely selected
-  GPIOA->BSRR = GPIO_BSRR_BS9;
+  GPIOC->BSRR = GPIO_BSRR_BS8 | GPIO_BSRR_BS6 | GPIO_BSRR_BS5;
 }
 
 void gpio_init(void) {
   // Enable clock access to GPIO A, B
   RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
   RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN;
+  RCC->AHB1ENR |= RCC_AHB1ENR_GPIOCEN;
 
   gpio_usart2();
   gpio_led();

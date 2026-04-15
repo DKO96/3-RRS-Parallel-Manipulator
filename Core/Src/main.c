@@ -55,7 +55,8 @@ void TIM1_UP_TIM10_IRQHandler(void) {
   uint32_t resets = 0;
 
   for (uint8_t i = 0; i < NUM_MOTORS; i++) {
-    if (controller.motor[i].steps_remaining == 0) continue;
+    if (controller.motor[i].steps_remaining == 0)
+      continue;
 
     controller.motor[i].step_counter++;
     if (controller.motor[i].step_counter >= controller.motor[i].step_period) {
@@ -153,13 +154,24 @@ static void encoder_task(void *pvParameters) {
   (void)pvParameters;
 
   TickType_t last_wake = xTaskGetTickCount();
-  uint16_t position;
+  uint16_t position0;
+  uint16_t position1;
+  uint16_t position2;
 
   for (;;) {
-    amt222b_read(&position);
+    amt222b_read(8, &position0);
+    printS("motor0: ");
+    printI(position0);
+    printS("\t\t");
 
-    printS("position: ");
-    printI(position);
+    amt222b_read(6, &position1);
+    printS("motor1: ");
+    printI(position1);
+    printS("\t\t");
+
+    amt222b_read(5, &position2);
+    printS("motor2: ");
+    printI(position2);
     printS("\r\n");
 
     vTaskDelayUntil(&last_wake, pdMS_TO_TICKS(100));
@@ -199,7 +211,8 @@ static void controller_task(void *pvParameters) {
       }
 
       for (uint8_t i = 0; i < NUM_MOTORS; i++) {
-        if (controller.motor[i].steps_remaining == 0) continue;
+        if (controller.motor[i].steps_remaining == 0)
+          continue;
 
         controller.motor[i].step_period =
             TICKS_PER_CONTROL / controller.motor[i].steps_remaining;

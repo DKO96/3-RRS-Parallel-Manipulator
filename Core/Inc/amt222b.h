@@ -3,6 +3,6 @@
 
 #include "stm32f446xx.h"
 
-void amt222b_read(uint16_t *position);
+void amt222b_read(uint8_t pin, uint16_t *position);
 
 #endif /* AMT222B_H_ */
