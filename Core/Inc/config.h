@@ -28,6 +28,7 @@
 #define TIM1_FREQ 100000
 #define TICKS_PER_CONTROL (TIM1_FREQ / (uint32_t)CONTROL_FREQ)
 
+// #define VEL_MAX 167.0f
 #define VEL_MAX 167.0f
 #define ACC_MAX 600.0f
 

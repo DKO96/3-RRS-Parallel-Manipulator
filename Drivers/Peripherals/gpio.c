@@ -83,9 +83,9 @@ void gpio_spi1(void) {
       PA6 -> SPI1_MISO (AF5)
       PA7 -> SPI1_MOSI (AF5)
 
-      PA8 -> SPI1_CS (GP)
-      PA6 -> SPI1_CS (GP)
-      PA5 -> SPI1_CS (GP)
+      PC8 -> SPI1_CS (GP)
+      PC6 -> SPI1_CS (GP)
+      PC5 -> SPI1_CS (GP)
   */
 
   // Configure SPI1
