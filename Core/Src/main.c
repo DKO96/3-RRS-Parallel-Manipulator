@@ -118,7 +118,7 @@ static void encoder_task(void *pvParameters) {
       controller.motor[i].angle = ANGLE(raw);
     }
     printS("encoder: ");
-    printI(controller.motor[0].angle);
+    printF(controller.motor[0].angle);
     printS("\r\n");
 
     vTaskDelayUntil(&last_wake, pdMS_TO_TICKS(100));
@@ -140,13 +140,13 @@ static void controller_task(void *pvParameters) {
     /* VALIDATE TRAJECTORY WAYPOINT REACHED */
     int32_t max_error = 0;
     for (uint8_t i = 0; i < NUM_MOTORS; i++) {
-      int32_t measured = controller.motor[i].angle;
-      int32_t target = controller.motor[i].last_waypoint;
-      int32_t err = target - measured;
+      float measured = controller.motor[i].angle;
+      float target = controller.motor[i].last_waypoint;
+      float err = target - measured;
     }
 
     printS("measured ");
-    printI(controller.motor[0].angle);
+    printF(controller.motor[0].angle);
     printS("\r\n");
 
     /* COMMAND NEXT MOVE */

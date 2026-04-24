@@ -24,7 +24,7 @@ typedef struct {
   volatile uint32_t steps_remaining;
   volatile int32_t current_steps;
   volatile int32_t last_waypoint;
-  volatile uint16_t angle;
+  volatile float angle;
   volatile int32_t target_steps;
   volatile int8_t step_dir;
 } Motor;
