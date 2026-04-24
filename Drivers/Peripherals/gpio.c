@@ -11,11 +11,11 @@ void gpio_usart2(void) {
       ((7U << GPIO_AFRL_AFSEL2_Pos) | (7U << GPIO_AFRL_AFSEL3_Pos));
 }
 
-void gpio_led(void) {
-  // Configure GPIOA mode port for PA5
-  GPIOA->MODER &= ~GPIO_MODER_MODE5;
-  GPIOA->MODER |= GPIO_MODER_MODE5_0;
-}
+// void gpio_led(void) {
+//   // Configure GPIOA mode port for PA5
+//   GPIOA->MODER &= ~GPIO_MODER_MODE5;
+//   GPIOA->MODER |= GPIO_MODER_MODE5_0;
+// }
 
 void gpio_button(void) {
   // Configure GPIOC mode port for PC13
@@ -116,7 +116,7 @@ void gpio_spi1(void) {
   GPIOC->MODER |= ((1U << GPIO_MODER_MODE8_Pos) | (1U << GPIO_MODER_MODE6_Pos) |
                    (1U << GPIO_MODER_MODE5_Pos));
 
-  GPIOC->PUPDR &= ~(GPIO_MODER_MODE8 | GPIO_MODER_MODE6 | GPIO_MODER_MODE5);
+  GPIOC->PUPDR &= ~(GPIO_PUPDR_PUPD8 | GPIO_PUPDR_PUPD6 | GPIO_PUPDR_PUPD5);
   GPIOC->PUPDR |= ((1U << GPIO_PUPDR_PUPD8_Pos) | (1U << GPIO_PUPDR_PUPD6_Pos) |
                    (1U << GPIO_PUPDR_PUPD5_Pos));
 
@@ -132,7 +132,7 @@ void gpio_init(void) {
   RCC->AHB1ENR |= RCC_AHB1ENR_GPIOCEN;
 
   gpio_usart2();
-  gpio_led();
+  // gpio_led();
   gpio_button();
   gpio_stepper1();
   gpio_stepper2();

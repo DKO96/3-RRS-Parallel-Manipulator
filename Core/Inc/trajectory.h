@@ -17,7 +17,7 @@ typedef struct {
 
 typedef struct {
   int32_t target_position[NUM_MOTORS];
-  int32_t target_angle[NUM_MOTORS];
+  float target_angle[NUM_MOTORS];
 } TrajectoryPoint_t;
 
 typedef struct {

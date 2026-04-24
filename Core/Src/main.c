@@ -25,28 +25,19 @@ static const uint32_t dir_reset[NUM_MOTORS] = {DIR_RESET_PIN_0, DIR_RESET_PIN_1,
 /* Initialize motor*/
 MotorController controller = {.motor = {{.step_period = BASE_SPEED,
                                          .current_steps = 800,
-                                         .angle = ANGLE(12365 - 4096),
+                                         .angle = ANGLE(12355),
                                          .step_dir = 1},
                                         {.step_period = BASE_SPEED,
                                          .current_steps = 800,
-                                         .angle = ANGLE(80 - 4096),
+                                         .angle = ANGLE(12094),
                                          .step_dir = 1},
                                         {.step_period = BASE_SPEED,
                                          .current_steps = 800,
-                                         .angle = ANGLE(14270 - 4096),
+                                         .angle = ANGLE(12341),
                                          .step_dir = 1}},
                               .pending_resets = 0};
 
 volatile uint8_t safety_flag = 1;
-uint16_t en0;
-uint16_t en1;
-uint16_t en2;
-uint16_t *encoder[NUM_MOTORS] = {&en0, &en1, &en2};
-static int32_t encoder_offset[NUM_MOTORS];
-
-// static int32_t encoder_unwrap(uint16_t raw, uint8_t i) {
-//   int32_t delta = (int32_t)raw - encoder_offset[i];
-// }
 
 void EXTI15_10_IRQHandler(void) {
   if (EXTI->PR & EXTI_PR_PR13) {
@@ -73,7 +64,8 @@ void TIM1_UP_TIM10_IRQHandler(void) {
   uint32_t resets = 0;
 
   for (uint8_t i = 0; i < NUM_MOTORS; i++) {
-    if (controller.motor[i].steps_remaining == 0) continue;
+    if (controller.motor[i].steps_remaining == 0)
+      continue;
 
     controller.motor[i].step_counter++;
     if (controller.motor[i].step_counter >= controller.motor[i].step_period) {
@@ -105,65 +97,11 @@ static void trajectory_task(void *pvParameters) {
   float n_start[3] = {0.0f, 0.0f, 1.0f};
   float h_start = 130.0f;
   float n_end[3] = {0.0f, 0.0f, 1.0f};
-  float h_end = 110.0f;
-  generate_trajectory(n_start, h_start, n_end, h_end, traj_queue);
-  vTaskDelay(2000);
-
-  n_start[0] = 0.0f;
-  n_start[1] = 0.0f;
-  n_start[2] = 1.0f;
-  h_start = 110.0f;
-  n_end[0] = 0.371391f;
-  n_end[1] = 0.0f;
-  n_end[2] = 0.928477f;
-  h_end = 110.0f;
+  float h_end = 125.0f;
   generate_trajectory(n_start, h_start, n_end, h_end, traj_queue);
   vTaskDelay(2000);
 
   for (;;) {
-    n_start[0] = 0.371391f;
-    n_start[1] = 0.0f;
-    n_start[2] = 0.928477f;
-    h_start = 110.0f;
-    n_end[0] = 0.0f;
-    n_end[1] = 0.371391f;
-    n_end[2] = 0.928477f;
-    h_end = 110.0f;
-    generate_trajectory(n_start, h_start, n_end, h_end, traj_queue);
-    vTaskDelay(2000);
-
-    n_start[0] = 0.0f;
-    n_start[1] = 0.371391f;
-    n_start[2] = 0.928477f;
-    h_start = 110.0f;
-    n_end[0] = -0.371391f;
-    n_end[1] = 0.0f;
-    n_end[2] = 0.928477f;
-    h_end = 110.0f;
-    generate_trajectory(n_start, h_start, n_end, h_end, traj_queue);
-    vTaskDelay(2000);
-
-    n_start[0] = -0.371391f;
-    n_start[1] = 0.0f;
-    n_start[2] = 0.928477f;
-    h_start = 110.0f;
-    n_end[0] = 0.0f;
-    n_end[1] = -0.371391f;
-    n_end[2] = 0.928477f;
-    h_end = 110.0f;
-    generate_trajectory(n_start, h_start, n_end, h_end, traj_queue);
-    vTaskDelay(2000);
-
-    n_start[0] = 0.0f;
-    n_start[1] = -0.371391f;
-    n_start[2] = 0.928477f;
-    h_start = 110.0f;
-    n_end[0] = 0.371391f;
-    n_end[1] = 0.0f;
-    n_end[2] = 0.928477f;
-    h_end = 110.0f;
-    generate_trajectory(n_start, h_start, n_end, h_end, traj_queue);
-    vTaskDelay(2000);
   }
 }
 
@@ -175,13 +113,12 @@ static void encoder_task(void *pvParameters) {
 
   for (;;) {
     for (uint8_t i = 0; i < NUM_MOTORS; i++) {
-      amt222b_read(encoder_pins[i], encoder[i]);
-      printS("encoder[");
-      printI(i);
-      printS("]: ");
-      printI(*encoder[i]);
-      printS("\t");
+      uint16_t raw;
+      amt222b_read(encoder_pins[i], &raw);
+      controller.motor[i].angle = ANGLE(raw);
     }
+    printS("encoder: ");
+    printI(controller.motor[0].angle);
     printS("\r\n");
 
     vTaskDelayUntil(&last_wake, pdMS_TO_TICKS(100));
@@ -197,21 +134,20 @@ static void controller_task(void *pvParameters) {
     vTaskDelayUntil(&last_wake, pdMS_TO_TICKS(10));
 
     TrajectoryPoint_t point;
-    if (xQueueReceive(traj_queue, &point, 0) != pdTRUE) continue;
+    if (xQueueReceive(traj_queue, &point, 0) != pdTRUE)
+      continue;
 
     /* VALIDATE TRAJECTORY WAYPOINT REACHED */
-    // int32_t max_error = 0;
-    // for (uint8_t i = 0; i < NUM_MOTORS; i++) {
-    //   int32_t measured = controller.motor[i].angle;
-    //   int32_t target = controller.motor[i].last_waypoint;
-    //   int32_t err = target - measured;
-    //   printS("err[");
-    //   printI(i);
-    //   printS("]: ");
-    //   printI(err);
-    //   printS("\t");
-    // }
-    // printS("\r\n");
+    int32_t max_error = 0;
+    for (uint8_t i = 0; i < NUM_MOTORS; i++) {
+      int32_t measured = controller.motor[i].angle;
+      int32_t target = controller.motor[i].last_waypoint;
+      int32_t err = target - measured;
+    }
+
+    printS("measured ");
+    printI(controller.motor[0].angle);
+    printS("\r\n");
 
     /* COMMAND NEXT MOVE */
     __disable_irq();
@@ -240,7 +176,8 @@ static void controller_task(void *pvParameters) {
     }
 
     for (uint8_t i = 0; i < NUM_MOTORS; i++) {
-      if (controller.motor[i].steps_remaining == 0) continue;
+      if (controller.motor[i].steps_remaining == 0)
+        continue;
 
       controller.motor[i].step_period =
           TICKS_PER_CONTROL / controller.motor[i].steps_remaining;

@@ -134,9 +134,8 @@ void generate_trajectory(float n_start[3], float h_start, float n_end[3],
     TrajectoryPoint_t point;
     for (uint8_t i = 0; i < NUM_MOTORS; i++) {
       point.target_position[i] = (int32_t)(theta[i] / ALPHA);
-      point.target_angle[i] = (int32_t)theta[i];
+      point.target_angle[i] = theta[i];
     }
-
     xQueueSend(q, &point, portMAX_DELAY);
 
     t += CONTROL_DT;
