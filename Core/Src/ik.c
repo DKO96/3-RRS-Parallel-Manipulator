@@ -43,8 +43,7 @@ float vec3_dot(float a[3], float b[3]) {
 void RRS_ik(float n[3], float h, float theta[3]) {
   float psi_y = asinf(n[0]);
 
-  if (fabsf(psi_y) == 1)
-    return;
+  if (fabsf(psi_y) == 1) return;
 
   float psi_x = asinf(-n[1] / cosf(psi_y));
   float psi_z =
@@ -104,25 +103,7 @@ void RRS_ik(float n[3], float h, float theta[3]) {
     float C = S[0] * S[0] - 2 * BASE * S[0] * ca +
               ca * ca * (BASE * BASE + L1 * L1 - L2 * L2 + S[2] * S[2]);
 
-    // float t = (-B + sqrtf(A * A + B * B - C * C)) / (C - A);
-    // theta[i] = -2 * atanf(t);
-
     float disc = A * A + B * B - C * C;
-
-    // DEBUG: output A, B, C
-    // if (i == 0) {
-    //   printS("A=");
-    //   printF(A);
-    //   printS(" B=");
-    //   printF(B);
-    //   printS(" C=");
-    //   printF(C);
-    //   printS(" disc=");
-    //   printF(disc);
-    //   printS(" C-A=");
-    //   printF(C - A);
-    //   printS("\r\n");
-    // }
 
     if (disc < 0.0f) {
       printS("WARN: disc<0 motor ");
@@ -133,16 +114,6 @@ void RRS_ik(float n[3], float h, float theta[3]) {
       disc = 0.0f;
     }
 
-    float t = (-B + sqrtf(disc)) / (C - A);
-    theta[i] = -2 * atanf(t);
+    theta[i] = 2.0f * atan2f(-B + sqrtf(disc), C - A);
   }
-
-  // DEBUG: output theta
-  // printS("theta: ");
-  // printF(RAD_TO_DEG(theta[0]));
-  // printS(" \t");
-  // printF(RAD_TO_DEG(theta[1]));
-  // printS(" \t");
-  // printF(RAD_TO_DEG(theta[2]));
-  // printS("\r\n");
 }

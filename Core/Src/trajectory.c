@@ -98,15 +98,13 @@ void generate_trajectory(float n_start[3], float h_start, float n_end[3],
     }
   }
 
-  if (max_delta == 0)
-    return;
+  if (max_delta == 0) return;
 
   /* 3. Build trapezoidal profile from max distance */
   TrapezoidalProfile_t profile;
   trap_profile_compute(&profile, (float)max_delta);
 
-  if (profile.T <= 0.0f)
-    return;
+  if (profile.T <= 0.0f) return;
 
   /* 4. Sample trajectory waypoints */
   float t = 0.0f;
@@ -133,7 +131,6 @@ void generate_trajectory(float n_start[3], float h_start, float n_end[3],
     // Push waypoint to queue
     TrajectoryPoint_t point;
     for (uint8_t i = 0; i < NUM_MOTORS; i++) {
-      point.target_position[i] = (int32_t)(theta[i] / ALPHA);
       point.target_angle[i] = theta[i];
     }
     xQueueSend(q, &point, portMAX_DELAY);
@@ -144,7 +141,7 @@ void generate_trajectory(float n_start[3], float h_start, float n_end[3],
   /* 5. Push final waypoint to queue */
   TrajectoryPoint_t final_point;
   for (uint8_t i = 0; i < NUM_MOTORS; i++) {
-    final_point.target_position[i] = end_steps[i];
+    final_point.target_angle[i] = theta_end[i];
   }
   xQueueSend(q, &final_point, portMAX_DELAY);
 }

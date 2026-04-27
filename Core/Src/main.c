@@ -1,5 +1,7 @@
 #include "main.h"
 
+#include "math.h"
+
 // FreeRTOS
 #include "FreeRTOS.h"
 #include "queue.h"
@@ -9,8 +11,6 @@
 
 QueueHandle_t traj_queue;
 
-#define LED_ON() (GPIOA->ODR |= GPIO_ODR_OD5)
-#define LED_OFF() (GPIOA->ODR &= ~GPIO_ODR_OD5)
 #define ANGLE(raw) ((float)(raw * 2.0f * M_PI / 16384.0f))
 
 const uint32_t step_set[NUM_MOTORS] = {STEP_SET_PIN_0, STEP_SET_PIN_1,
@@ -23,19 +23,13 @@ static const uint32_t dir_reset[NUM_MOTORS] = {DIR_RESET_PIN_0, DIR_RESET_PIN_1,
                                                DIR_RESET_PIN_2};
 
 /* Initialize motor*/
-MotorController controller = {.motor = {{.step_period = BASE_SPEED,
-                                         .current_steps = 800,
-                                         .angle = ANGLE(12355),
-                                         .step_dir = 1},
-                                        {.step_period = BASE_SPEED,
-                                         .current_steps = 800,
-                                         .angle = ANGLE(12094),
-                                         .step_dir = 1},
-                                        {.step_period = BASE_SPEED,
-                                         .current_steps = 800,
-                                         .angle = ANGLE(12341),
-                                         .step_dir = 1}},
-                              .pending_resets = 0};
+MotorController controller = {
+    .motor = {{.step_period = BASE_SPEED, .angle = ANGLE(12355), .step_dir = 1},
+              {.step_period = BASE_SPEED, .angle = ANGLE(12094), .step_dir = 1},
+              {.step_period = BASE_SPEED,
+               .angle = ANGLE(12341),
+               .step_dir = 1}},
+    .pending_resets = 0};
 
 volatile uint8_t safety_flag = 1;
 
@@ -46,12 +40,10 @@ void EXTI15_10_IRQHandler(void) {
 
   if (safety_flag) {
     safety_flag = 0;
-    LED_OFF();
     TIM1->CR1 |= TIM_CR1_CEN;
     printS("SAFETY: OFF\r\n");
   } else {
     safety_flag = 1;
-    LED_ON();
     TIM1->CR1 &= ~TIM_CR1_CEN;
     printS("SAFETY: ON\r\n");
   }
@@ -64,8 +56,7 @@ void TIM1_UP_TIM10_IRQHandler(void) {
   uint32_t resets = 0;
 
   for (uint8_t i = 0; i < NUM_MOTORS; i++) {
-    if (controller.motor[i].steps_remaining == 0)
-      continue;
+    if (controller.motor[i].steps_remaining == 0) continue;
 
     controller.motor[i].step_counter++;
     if (controller.motor[i].step_counter >= controller.motor[i].step_period) {
@@ -73,8 +64,6 @@ void TIM1_UP_TIM10_IRQHandler(void) {
       pins_to_set |= step_set[i];
       resets |= step_reset[i];
       controller.motor[i].steps_remaining--;
-
-      controller.motor[i].current_steps += controller.motor[i].step_dir;
     }
   }
 
@@ -96,12 +85,33 @@ static void trajectory_task(void *pvParameters) {
   (void)pvParameters;
   float n_start[3] = {0.0f, 0.0f, 1.0f};
   float h_start = 130.0f;
-  float n_end[3] = {0.0f, 0.0f, 1.0f};
-  float h_end = 125.0f;
+  float n_end[3] = {0.371391f, 0.0f, 0.928477f};
+  float h_end = 110.0f;
   generate_trajectory(n_start, h_start, n_end, h_end, traj_queue);
   vTaskDelay(2000);
 
   for (;;) {
+    n_start[0] = 0.371391f;
+    n_start[1] = 0.0f;
+    n_start[2] = 0.928477f;
+    h_start = 110.0f;
+    n_end[0] = -0.371391f;
+    n_end[1] = 0.0f;
+    n_end[2] = 0.928477f;
+    h_end = 110.0f;
+    generate_trajectory(n_start, h_start, n_end, h_end, traj_queue);
+    vTaskDelay(2000);
+
+    n_start[0] = -0.371391f;
+    n_start[1] = 0.0f;
+    n_start[2] = 0.928477f;
+    h_start = 110.0f;
+    n_end[0] = 0.371391f;
+    n_end[1] = 0.0f;
+    n_end[2] = 0.928477f;
+    h_end = 110.0f;
+    generate_trajectory(n_start, h_start, n_end, h_end, traj_queue);
+    vTaskDelay(2000);
   }
 }
 
@@ -114,14 +124,17 @@ static void encoder_task(void *pvParameters) {
   for (;;) {
     for (uint8_t i = 0; i < NUM_MOTORS; i++) {
       uint16_t raw;
-      amt222b_read(encoder_pins[i], &raw);
-      controller.motor[i].angle = ANGLE(raw);
-    }
-    printS("encoder: ");
-    printF(controller.motor[0].angle);
-    printS("\r\n");
 
-    vTaskDelayUntil(&last_wake, pdMS_TO_TICKS(100));
+      amt222b_read(encoder_pins[i], &raw);
+
+      float joint_angle = ANGLE(raw);
+
+      if (joint_angle > M_PI) joint_angle -= 2.0f * M_PI;
+
+      controller.motor[i].angle = joint_angle;
+    }
+
+    vTaskDelayUntil(&last_wake, pdMS_TO_TICKS(5));
   }
 }
 
@@ -129,45 +142,41 @@ static void controller_task(void *pvParameters) {
   (void)pvParameters;
 
   TickType_t last_wake = xTaskGetTickCount();
+  static float prev_target[NUM_MOTORS];
+  static uint8_t have_prev_waypoint = 0;
 
   for (;;) {
     vTaskDelayUntil(&last_wake, pdMS_TO_TICKS(10));
 
     TrajectoryPoint_t point;
-    if (xQueueReceive(traj_queue, &point, 0) != pdTRUE)
-      continue;
+    if (xQueueReceive(traj_queue, &point, 0) != pdTRUE) continue;
 
     /* VALIDATE TRAJECTORY WAYPOINT REACHED */
-    int32_t max_error = 0;
-    for (uint8_t i = 0; i < NUM_MOTORS; i++) {
-      float measured = controller.motor[i].angle;
-      float target = controller.motor[i].last_waypoint;
-      float err = target - measured;
+    if (have_prev_waypoint) {
+      for (uint8_t i = 0; i < NUM_MOTORS; i++) {
+        float error = controller.motor[i].angle - prev_target[i];
+        if (fabsf(error) > 0.02f) {
+          // printS("MISS\r\n");
+        }
+      }
     }
-
-    printS("measured ");
-    printF(controller.motor[0].angle);
-    printS("\r\n");
 
     /* COMMAND NEXT MOVE */
     __disable_irq();
 
     uint32_t max_steps = 0;
     for (uint8_t i = 0; i < NUM_MOTORS; i++) {
-      // int32_t delta_angle = (point.target_angle[i] * (2 * M_PI / 16384)) -
-      //                       controller.motor[i].angle_init;
+      float delta_angle = point.target_angle[i] - controller.motor[i].angle;
+      int32_t delta_steps = (int32_t)(delta_angle / ALPHA);
 
-      int32_t delta =
-          point.target_position[i] - controller.motor[i].current_steps;
-
-      if (delta < 0) {
-        GPIOB->BSRR = dir_set[i];
-        controller.motor[i].step_dir = -1;
-        controller.motor[i].steps_remaining = (uint32_t)(-delta);
-      } else {
+      if (delta_steps < 0) {
         GPIOB->BSRR = dir_reset[i];
+        controller.motor[i].step_dir = -1;
+        controller.motor[i].steps_remaining = (uint32_t)(-delta_steps);
+      } else {
+        GPIOB->BSRR = dir_set[i];
         controller.motor[i].step_dir = 1;
-        controller.motor[i].steps_remaining = (uint32_t)(delta);
+        controller.motor[i].steps_remaining = (uint32_t)(delta_steps);
       }
 
       if (controller.motor[i].steps_remaining > max_steps) {
@@ -176,8 +185,7 @@ static void controller_task(void *pvParameters) {
     }
 
     for (uint8_t i = 0; i < NUM_MOTORS; i++) {
-      if (controller.motor[i].steps_remaining == 0)
-        continue;
+      if (controller.motor[i].steps_remaining == 0) continue;
 
       controller.motor[i].step_period =
           TICKS_PER_CONTROL / controller.motor[i].steps_remaining;
@@ -189,9 +197,11 @@ static void controller_task(void *pvParameters) {
 
     __enable_irq();
 
+    /* SAVE TARGET */
     for (uint8_t i = 0; i < NUM_MOTORS; i++) {
-      controller.motor[i].last_waypoint = point.target_angle[i];
+      prev_target[i] = point.target_angle[i];
     }
+    have_prev_waypoint = 1;
   }
 }
 
@@ -206,7 +216,6 @@ int main() {
   spi1_init();
 
   printS("\r\n=========PROGRAM START=============\r\n");
-  LED_ON();
   while (safety_flag)
     ;
 
