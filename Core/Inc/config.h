@@ -1,6 +1,8 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
+#include "stm32f446xx.h"
+
 /* Math */
 #define M_PI 3.14159265358979323846
 #define DEG_TO_RAD(deg) ((deg) * (M_PI / 180.0f))
@@ -17,7 +19,7 @@
 #define ALPHA (6.2831853f / STEPS_PER_REV)
 
 /* Motor Behaviour */
-#define BASE_SPEED 600
+#define BASE_VEL 600
 #define TRAP_STEPS 100
 
 #define angle_resolution 0.0872665f
@@ -47,5 +49,29 @@
 #define DIR_RESET_PIN_0 GPIO_BSRR_BR2
 #define DIR_RESET_PIN_1 GPIO_BSRR_BR1
 #define DIR_RESET_PIN_2 GPIO_BSRR_BR15
+
+extern const uint32_t step_set[NUM_MOTORS];
+extern const uint32_t step_reset[NUM_MOTORS];
+
+typedef struct {
+  volatile float n_x;
+  volatile float n_y;
+  volatile float n_z;
+  volatile float h;
+} Pose_t;
+
+typedef struct {
+  volatile uint32_t step_period;
+  volatile uint32_t step_counter;
+  volatile uint32_t steps_remaining;
+  volatile float angle;
+  volatile int8_t step_dir;
+} Motor_t;
+
+typedef struct {
+  Motor_t motor[NUM_MOTORS];
+  volatile uint32_t pending_resets;
+  Pose_t pose;
+} MotorController_t;
 
 #endif /* CONFIG_H_ */

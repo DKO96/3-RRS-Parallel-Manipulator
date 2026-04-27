@@ -43,7 +43,8 @@ float vec3_dot(float a[3], float b[3]) {
 void RRS_ik(float n[3], float h, float theta[3]) {
   float psi_y = asinf(n[0]);
 
-  if (fabsf(psi_y) == 1) return;
+  if (fabsf(psi_y) == 1)
+    return;
 
   float psi_x = asinf(-n[1] / cosf(psi_y));
   float psi_z =

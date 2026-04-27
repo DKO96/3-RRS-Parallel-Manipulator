@@ -1,10 +1,7 @@
 #include "trajectory.h"
 
-#include "FreeRTOS.h"
 #include "ik.h"
 #include "math.h"
-#include "queue.h"
-#include "trajectory.h"
 #include "uart.h"
 
 void trap_profile_compute(TrapezoidalProfile_t *p, float distance) {
@@ -74,7 +71,7 @@ float trap_progress(TrapezoidalProfile_t *p, float time) {
 }
 
 void generate_trajectory(float n_start[3], float h_start, float n_end[3],
-                         float h_end, QueueHandle_t q) {
+                         float h_end, QueueHandle_t q, MotorController_t *m) {
   /* 1. Compute trajectory endpoints */
   float theta_start[3], theta_end[3];
   RRS_ik(n_start, h_start, theta_start);
@@ -98,13 +95,15 @@ void generate_trajectory(float n_start[3], float h_start, float n_end[3],
     }
   }
 
-  if (max_delta == 0) return;
+  if (max_delta == 0)
+    return;
 
   /* 3. Build trapezoidal profile from max distance */
   TrapezoidalProfile_t profile;
   trap_profile_compute(&profile, (float)max_delta);
 
-  if (profile.T <= 0.0f) return;
+  if (profile.T <= 0.0f)
+    return;
 
   /* 4. Sample trajectory waypoints */
   float t = 0.0f;
@@ -123,6 +122,11 @@ void generate_trajectory(float n_start[3], float h_start, float n_end[3],
     n[2] /= mag;
 
     float h = (1.0f - s) * h_start + s * h_end;
+
+    m->pose.n_x = n[0];
+    m->pose.n_y = n[1];
+    m->pose.n_z = n[2];
+    m->pose.h = h;
 
     // Solve IK
     float theta[3];

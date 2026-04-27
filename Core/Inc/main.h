@@ -15,22 +15,6 @@
 // Hardware
 #include "amt222b.h"
 
-extern const uint32_t step_set[NUM_MOTORS];
-extern const uint32_t step_reset[NUM_MOTORS];
-
-typedef struct {
-  volatile uint32_t step_period;
-  volatile uint32_t step_counter;
-  volatile uint32_t steps_remaining;
-  volatile float angle;
-  volatile int8_t step_dir;
-} Motor;
-
-typedef struct {
-  Motor motor[NUM_MOTORS];
-  volatile uint32_t pending_resets;
-} MotorController;
-
 /**
  * @brief Initialize system clock for 180MHz
  */
