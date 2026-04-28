@@ -22,7 +22,9 @@
 #define BASE_VEL 600
 #define TRAP_STEPS 100
 
-#define angle_resolution 0.0872665f
+// #define angle_resolution 0.04363325f
+// #define angle_resolution 0.0872665
+#define angle_resolution 0.174533f
 #define height_resolution 0.5f
 
 #define CONTROL_FREQ 100.0f
@@ -30,7 +32,6 @@
 #define TIM1_FREQ 100000
 #define TICKS_PER_CONTROL (TIM1_FREQ / (uint32_t)CONTROL_FREQ)
 
-// #define VEL_MAX 167.0f
 #define VEL_MAX 167.0f
 #define ACC_MAX 600.0f
 

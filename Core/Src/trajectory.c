@@ -71,7 +71,7 @@ float trap_progress(TrapezoidalProfile_t *p, float time) {
 }
 
 void generate_trajectory(float n_start[3], float h_start, float n_end[3],
-                         float h_end, QueueHandle_t q, MotorController_t *m) {
+                         float h_end, QueueHandle_t q) {
   /* 1. Compute trajectory endpoints */
   float theta_start[3], theta_end[3];
   RRS_ik(n_start, h_start, theta_start);
@@ -95,13 +95,15 @@ void generate_trajectory(float n_start[3], float h_start, float n_end[3],
     }
   }
 
-  if (max_delta == 0) return;
+  if (max_delta == 0)
+    return;
 
   /* 3. Build trapezoidal profile from max distance */
   TrapezoidalProfile_t profile;
   trap_profile_compute(&profile, (float)max_delta);
 
-  if (profile.T <= 0.0f) return;
+  if (profile.T <= 0.0f)
+    return;
 
   /* 4. Sample trajectory waypoints */
   float t = 0.0f;
