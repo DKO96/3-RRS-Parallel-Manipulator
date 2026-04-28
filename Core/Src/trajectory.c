@@ -95,15 +95,13 @@ void generate_trajectory(float n_start[3], float h_start, float n_end[3],
     }
   }
 
-  if (max_delta == 0)
-    return;
+  if (max_delta == 0) return;
 
   /* 3. Build trapezoidal profile from max distance */
   TrapezoidalProfile_t profile;
   trap_profile_compute(&profile, (float)max_delta);
 
-  if (profile.T <= 0.0f)
-    return;
+  if (profile.T <= 0.0f) return;
 
   /* 4. Sample trajectory waypoints */
   float t = 0.0f;
@@ -123,11 +121,6 @@ void generate_trajectory(float n_start[3], float h_start, float n_end[3],
 
     float h = (1.0f - s) * h_start + s * h_end;
 
-    m->pose.n_x = n[0];
-    m->pose.n_y = n[1];
-    m->pose.n_z = n[2];
-    m->pose.h = h;
-
     // Solve IK
     float theta[3];
     RRS_ik(n, h, theta);
@@ -136,6 +129,10 @@ void generate_trajectory(float n_start[3], float h_start, float n_end[3],
     TrajectoryPoint_t point;
     for (uint8_t i = 0; i < NUM_MOTORS; i++) {
       point.target_angle[i] = theta[i];
+      point.pose.n_x = n[0];
+      point.pose.n_y = n[1];
+      point.pose.n_z = n[2];
+      point.pose.h = h;
     }
     xQueueSend(q, &point, portMAX_DELAY);
 
@@ -146,6 +143,10 @@ void generate_trajectory(float n_start[3], float h_start, float n_end[3],
   TrajectoryPoint_t final_point;
   for (uint8_t i = 0; i < NUM_MOTORS; i++) {
     final_point.target_angle[i] = theta_end[i];
+    final_point.pose.n_x = n_end[0];
+    final_point.pose.n_y = n_end[1];
+    final_point.pose.n_z = n_end[2];
+    final_point.pose.h = h_end;
   }
   xQueueSend(q, &final_point, portMAX_DELAY);
 }

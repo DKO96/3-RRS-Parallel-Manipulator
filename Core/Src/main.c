@@ -54,8 +54,7 @@ void TIM1_UP_TIM10_IRQHandler(void) {
   uint32_t resets = 0;
 
   for (uint8_t i = 0; i < NUM_MOTORS; i++) {
-    if (controller.motor[i].steps_remaining == 0)
-      continue;
+    if (controller.motor[i].steps_remaining == 0) continue;
 
     controller.motor[i].step_counter++;
     if (controller.motor[i].step_counter >= controller.motor[i].step_period) {
@@ -130,8 +129,7 @@ static void encoder_task(void *pvParameters) {
 
       float joint_angle = ANGLE(raw);
 
-      if (joint_angle > M_PI)
-        joint_angle -= 2.0f * M_PI;
+      if (joint_angle > M_PI) joint_angle -= 2.0f * M_PI;
 
       controller.motor[i].angle = joint_angle;
     }
@@ -144,24 +142,31 @@ static void controller_task(void *pvParameters) {
   (void)pvParameters;
 
   TickType_t last_wake = xTaskGetTickCount();
-  static float prev_target[NUM_MOTORS];
+  static TrajectoryPoint_t prev_point;
   static uint8_t have_prev_waypoint = 0;
 
   for (;;) {
     vTaskDelayUntil(&last_wake, pdMS_TO_TICKS(10));
 
     TrajectoryPoint_t point;
-    if (xQueueReceive(traj_queue, &point, 0) != pdTRUE)
-      continue;
+    if (xQueueReceive(traj_queue, &point, 0) != pdTRUE) continue;
 
     /* VALIDATE TRAJECTORY WAYPOINT REACHED */
     if (have_prev_waypoint) {
+      uint8_t reached = 1;
       for (uint8_t i = 0; i < NUM_MOTORS; i++) {
-        float error = controller.motor[i].angle - prev_target[i];
+        float error = controller.motor[i].angle - prev_point.target_angle[i];
         if (fabsf(error) > 0.02f) {
+          reached = 0;
           printS("MISS\r\n");
+          break;
         }
       }
+
+      if (reached) {
+        controller.pose = prev_point.pose;
+      }
+      /* else didn't reach pose */
     }
 
     /* COMMAND NEXT MOVE */
@@ -188,8 +193,7 @@ static void controller_task(void *pvParameters) {
     }
 
     for (uint8_t i = 0; i < NUM_MOTORS; i++) {
-      if (controller.motor[i].steps_remaining == 0)
-        continue;
+      if (controller.motor[i].steps_remaining == 0) continue;
 
       controller.motor[i].step_period =
           TICKS_PER_CONTROL / controller.motor[i].steps_remaining;
@@ -201,10 +205,8 @@ static void controller_task(void *pvParameters) {
 
     __enable_irq();
 
-    /* SAVE TARGET */
-    for (uint8_t i = 0; i < NUM_MOTORS; i++) {
-      prev_target[i] = point.target_angle[i];
-    }
+    /* SAVE TRAJECTORY WAYPOINT */
+    prev_point = point;
     have_prev_waypoint = 1;
   }
 }

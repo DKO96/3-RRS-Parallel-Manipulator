@@ -7,16 +7,17 @@
 #include "stm32f446xx.h"
 
 typedef struct {
-  float D;        // total distance [steps]
-  float T;        // total move time [seconds]
-  float t_accel;  // acceleration phase duration [seconds]
-  float t_const;  // constant velocity duration [seconds]
-  float velocity; // constant velocity [steps/sec]
-  float accel;    // acceleration [steps/sec^2] either ACC_MAX or 0
+  float D;         // total distance [steps]
+  float T;         // total move time [seconds]
+  float t_accel;   // acceleration phase duration [seconds]
+  float t_const;   // constant velocity duration [seconds]
+  float velocity;  // constant velocity [steps/sec]
+  float accel;     // acceleration [steps/sec^2] either ACC_MAX or 0
 } TrapezoidalProfile_t;
 
 typedef struct {
   float target_angle[NUM_MOTORS];
+  Pose_t pose;
 } TrajectoryPoint_t;
 
 typedef struct {
