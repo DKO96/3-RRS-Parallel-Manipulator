@@ -71,6 +71,23 @@ void gpio_stepper3(void) {
   GPIOB->MODER |= GPIO_MODER_MODE15_0;
 }
 
+void gpio_stepper4(void) {
+  // Configure PA8 for TMC2209(4) step pin
+  GPIOA->MODER &= ~GPIO_MODER_MODE8;
+  GPIOA->MODER |= GPIO_MODER_MODE8_0;
+
+  GPIOA->OTYPER &= ~GPIO_OTYPER_OT8;
+
+  GPIOA->OSPEEDR &= ~GPIO_OSPEEDR_OSPEED8;
+  GPIOA->OSPEEDR |= (3U << GPIO_OSPEEDR_OSPEED8_Pos);
+
+  GPIOA->PUPDR &= ~GPIO_PUPDR_PUPD8;
+
+  // Configure PB15 for TMC2209(3) dir pin
+  GPIOB->MODER &= ~GPIO_MODER_MODE14;
+  GPIOB->MODER |= GPIO_MODER_MODE14_0;
+}
+
 void gpio_spi1(void) {
   /* Configure PA5, PA6, PA7, PB6 for SPI1
       PA5 -> SPI1_SCK (AF5)
@@ -80,6 +97,7 @@ void gpio_spi1(void) {
       PC8 -> SPI1_CS (GP)
       PC6 -> SPI1_CS (GP)
       PC5 -> SPI1_CS (GP)
+      PC9 -> SPI1_CS (GP)
   */
 
   // Configure SPI1
@@ -130,5 +148,6 @@ void gpio_init(void) {
   gpio_stepper1();
   gpio_stepper2();
   gpio_stepper3();
+  gpio_stepper4();
   gpio_spi1();
 }

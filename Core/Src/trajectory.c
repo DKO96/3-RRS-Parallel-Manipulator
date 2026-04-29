@@ -79,14 +79,14 @@ void generate_trajectory(float n_start[3], float h_start, float n_end[3],
 
   // Convert joint angles into steps
   int32_t start_steps[3], end_steps[3];
-  for (uint8_t i = 0; i < NUM_MOTORS; i++) {
+  for (uint8_t i = 0; i < 3; i++) {
     start_steps[i] = (int32_t)(theta_start[i] / ALPHA);
     end_steps[i] = (int32_t)(theta_end[i] / ALPHA);
   }
 
   /* 2. Determine max distance (steps) from motors */
   uint32_t max_delta = 0;
-  for (uint8_t i = 0; i < NUM_MOTORS; i++) {
+  for (uint8_t i = 0; i < 3; i++) {
     int32_t delta = end_steps[i] - start_steps[i];
     uint32_t abs_delta = (delta < 0) ? (uint32_t)(-delta) : (uint32_t)(delta);
 
@@ -129,7 +129,7 @@ void generate_trajectory(float n_start[3], float h_start, float n_end[3],
 
     // Push waypoint to queue
     TrajectoryPoint_t point;
-    for (uint8_t i = 0; i < NUM_MOTORS; i++) {
+    for (uint8_t i = 0; i < 3; i++) {
       point.target_angle[i] = theta[i];
       point.pose.n_x = n[0];
       point.pose.n_y = n[1];
@@ -143,7 +143,7 @@ void generate_trajectory(float n_start[3], float h_start, float n_end[3],
 
   /* 5. Push final waypoint to queue */
   TrajectoryPoint_t final_point;
-  for (uint8_t i = 0; i < NUM_MOTORS; i++) {
+  for (uint8_t i = 0; i < 3; i++) {
     final_point.target_angle[i] = theta_end[i];
     final_point.pose.n_x = n_end[0];
     final_point.pose.n_y = n_end[1];

@@ -9,17 +9,17 @@
 #define RAD_TO_DEG(rad) ((rad) * (180.0f / M_PI))
 
 /* Robot Geometry */
-#define L1 55.0f
+#define L1 45.0f
 #define L2 75.0f
 #define BASE 50.0f
 #define PLATFORM 50.0f
 
-#define NUM_MOTORS 3
+#define NUM_MOTORS 4
 #define STEPS_PER_REV 3200.0f
 #define ALPHA (6.2831853f / STEPS_PER_REV)
 
 /* Motor Behaviour */
-#define BASE_VEL 600
+#define BASE_VEL 400
 #define TRAP_STEPS 100
 
 // #define angle_resolution 0.04363325f
@@ -40,16 +40,20 @@
 #define STEP_SET_PIN_0 GPIO_BSRR_BS0
 #define STEP_SET_PIN_1 GPIO_BSRR_BS1
 #define STEP_SET_PIN_2 GPIO_BSRR_BS4
+#define STEP_SET_PIN_3 GPIO_BSRR_BS8
 #define STEP_RESET_PIN_0 GPIO_BSRR_BR0
 #define STEP_RESET_PIN_1 GPIO_BSRR_BR1
 #define STEP_RESET_PIN_2 GPIO_BSRR_BR4
+#define STEP_RESET_PIN_3 GPIO_BSRR_BR8
 
 #define DIR_SET_PIN_0 GPIO_BSRR_BS2
 #define DIR_SET_PIN_1 GPIO_BSRR_BS1
 #define DIR_SET_PIN_2 GPIO_BSRR_BS15
+#define DIR_SET_PIN_3 GPIO_BSRR_BS14
 #define DIR_RESET_PIN_0 GPIO_BSRR_BR2
 #define DIR_RESET_PIN_1 GPIO_BSRR_BR1
 #define DIR_RESET_PIN_2 GPIO_BSRR_BR15
+#define DIR_RESET_PIN_3 GPIO_BSRR_BR14
 
 extern const uint32_t step_set[NUM_MOTORS];
 extern const uint32_t step_reset[NUM_MOTORS];
@@ -59,6 +63,7 @@ typedef struct {
   volatile float n_y;
   volatile float n_z;
   volatile float h;
+  volatile float z;
 } Pose_t;
 
 typedef struct {
