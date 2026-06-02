@@ -9,8 +9,8 @@
 #define RAD_TO_DEG(rad) ((rad) * (180.0f / M_PI))
 
 /* Robot Geometry */
-#define L1 45.0f
-#define L2 75.0f
+#define L1 35.0f
+#define L2 85.0f
 #define BASE 50.0f
 #define PLATFORM 50.0f
 

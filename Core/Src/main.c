@@ -60,7 +60,8 @@ void TIM1_UP_TIM10_IRQHandler(void) {
   uint32_t resets = 0;
 
   for (uint8_t i = 0; i < NUM_MOTORS; i++) {
-    if (controller.motor[i].steps_remaining == 0) continue;
+    if (controller.motor[i].steps_remaining == 0)
+      continue;
 
     controller.motor[i].step_counter++;
     if (controller.motor[i].step_counter >= controller.motor[i].step_period) {
@@ -112,152 +113,21 @@ static void generate_rotary(MotorController_t *m, int32_t z_start,
 static void trajectory_task(void *pvParameters) {
   (void)pvParameters;
   float n_start[3] = {0.0f, 0.0f, 1.0f};
-  float h_start = 120.0f;
+  float h_start = 110.0f;
   float n_end[3] = {0.0f, 0.0f, 1.0f};
-  float h_end = 100.0f;
-  generate_trajectory(n_start, h_start, n_end, h_end, traj_queue);
-  vTaskDelay(2000);
-
-  n_start[0] = 0.0f;
-  n_start[1] = 0.0f;
-  n_start[2] = 1.0f;
-  h_start = 100.0f;
-  n_end[0] = 0.371391f;
-  n_end[1] = 0.0f;
-  n_end[2] = 0.928477f;
-  h_end = 100.0f;
+  float h_end = 119.0f;
   generate_trajectory(n_start, h_start, n_end, h_end, traj_queue);
   vTaskDelay(2000);
 
   int32_t z_start = 0;
-  int32_t z_end = 6000;
-  generate_rotary(&controller, z_start, z_end);
-  xSemaphoreTake(rotary_complete_semphr, portMAX_DELAY);
-  vTaskDelay(2000);
+  int32_t z_end = 0;
+
+  // h_start = 100.0f;
+  // h_end = 115.0f;
+  // generate_trajectory(n_start, h_start, n_end, h_end, traj_queue);
+  // vTaskDelay(2000);
 
   for (;;) {
-    n_start[0] = 0.371391f;
-    n_start[1] = 0.0f;
-    n_start[2] = 0.928477f;
-    h_start = 100.0f;
-    n_end[0] = 0.0f;
-    n_end[1] = 0.371391f;
-    n_end[2] = 0.928477f;
-    h_end = 100.0f;
-    generate_trajectory(n_start, h_start, n_end, h_end, traj_queue);
-    vTaskDelay(2000);
-
-    z_start = 6000;
-    z_end = 9000;
-    generate_rotary(&controller, z_start, z_end);
-    xSemaphoreTake(rotary_complete_semphr, portMAX_DELAY);
-    vTaskDelay(2000);
-
-    n_start[0] = 0.0f;
-    n_start[1] = 0.371391f;
-    n_start[2] = 0.928477f;
-    h_start = 100.0f;
-    n_end[0] = 0.0f;
-    n_end[1] = 0.0f;
-    n_end[2] = 1.0f;
-    h_end = 100.0f;
-    generate_trajectory(n_start, h_start, n_end, h_end, traj_queue);
-    vTaskDelay(2000);
-
-    z_start = 9000;
-    z_end = -6000;
-    generate_rotary(&controller, z_start, z_end);
-    xSemaphoreTake(rotary_complete_semphr, portMAX_DELAY);
-    vTaskDelay(2000);
-
-    n_start[0] = 0.0f;
-    n_start[1] = 0.0f;
-    n_start[2] = 1.0f;
-    h_start = 100.0f;
-    n_end[0] = 0.0f;
-    n_end[1] = -0.371391f;
-    n_end[2] = 0.928477f;
-    h_end = 100.0f;
-    generate_trajectory(n_start, h_start, n_end, h_end, traj_queue);
-    vTaskDelay(2000);
-
-    z_start = -6000;
-    z_end = -9000;
-    generate_rotary(&controller, z_start, z_end);
-    xSemaphoreTake(rotary_complete_semphr, portMAX_DELAY);
-    vTaskDelay(2000);
-
-    n_start[0] = 0.0f;
-    n_start[1] = -0.371391f;
-    n_start[2] = 0.928477f;
-    h_start = 100.0f;
-    n_end[0] = 0.0f;
-    n_end[1] = 0.0f;
-    n_end[2] = 1.0f;
-    h_end = 100.0f;
-    generate_trajectory(n_start, h_start, n_end, h_end, traj_queue);
-    vTaskDelay(2000);
-
-    z_start = -9000;
-    z_end = 0;
-    generate_rotary(&controller, z_start, z_end);
-    xSemaphoreTake(rotary_complete_semphr, portMAX_DELAY);
-    vTaskDelay(2000);
-
-    n_start[0] = 0.0f;
-    n_start[1] = 0.0f;
-    n_start[2] = 1.0f;
-    h_start = 100.0f;
-    n_end[0] = 0.371391f;
-    n_end[1] = 0.0f;
-    n_end[2] = 0.928477f;
-    h_end = 100.0f;
-    generate_trajectory(n_start, h_start, n_end, h_end, traj_queue);
-    vTaskDelay(2000);
-
-    n_start[0] = 0.371391f;
-    n_start[1] = 0.0f;
-    n_start[2] = 0.928477f;
-    h_start = 100.0f;
-    n_end[0] = 0.0f;
-    n_end[1] = 0.371391f;
-    n_end[2] = 0.928477f;
-    h_end = 100.0f;
-    generate_trajectory(n_start, h_start, n_end, h_end, traj_queue);
-    vTaskDelay(2000);
-
-    n_start[0] = 0.0f;
-    n_start[1] = 0.371391f;
-    n_start[2] = 0.928477f;
-    h_start = 100.0f;
-    n_end[0] = -0.371391f;
-    n_end[1] = 0.0f;
-    n_end[2] = 0.928477f;
-    h_end = 100.0f;
-    generate_trajectory(n_start, h_start, n_end, h_end, traj_queue);
-    vTaskDelay(2000);
-
-    n_start[0] = -0.371391f;
-    n_start[1] = 0.0f;
-    n_start[2] = 0.928477f;
-    h_start = 100.0f;
-    n_end[0] = 0.0f;
-    n_end[1] = -0.371391f;
-    n_end[2] = 0.928477f;
-    h_end = 100.0f;
-    generate_trajectory(n_start, h_start, n_end, h_end, traj_queue);
-    vTaskDelay(2000);
-
-    n_start[0] = 0.0f;
-    n_start[1] = -0.371391f;
-    n_start[2] = 0.928477f;
-    h_start = 100.0f;
-    n_end[0] = 0.371391f;
-    n_end[1] = 0.0f;
-    n_end[2] = 0.928477f;
-    h_end = 100.0f;
-    generate_trajectory(n_start, h_start, n_end, h_end, traj_queue);
-    vTaskDelay(2000);
   }
 }
 
@@ -275,10 +145,21 @@ static void encoder_task(void *pvParameters) {
 
       float joint_angle = ANGLE(raw);
 
-      if (joint_angle > M_PI) joint_angle -= 2.0f * M_PI;
+      if (joint_angle > M_PI)
+        joint_angle -= 2.0f * M_PI;
 
       controller.motor[i].angle = joint_angle;
     }
+
+    // printS("motor1: ");
+    // printF(controller.motor[0].angle);
+    // printS("\t");
+    // printS("motor2: ");
+    // printF(controller.motor[1].angle);
+    // printS("\t");
+    // printS("motor3: ");
+    // printF(controller.motor[2].angle);
+    // printS("\r\n");
 
     vTaskDelayUntil(&last_wake, pdMS_TO_TICKS(1));
   }
@@ -295,16 +176,16 @@ static void controller_task(void *pvParameters) {
     vTaskDelayUntil(&last_wake, pdMS_TO_TICKS(10));
 
     TrajectoryPoint_t point;
-    if (xQueueReceive(traj_queue, &point, 0) != pdTRUE) continue;
+    if (xQueueReceive(traj_queue, &point, 0) != pdTRUE)
+      continue;
 
     /* VALIDATE TRAJECTORY WAYPOINT REACHED */
     if (have_prev_waypoint) {
       uint8_t reached = 1;
       for (uint8_t i = 0; i < 3; i++) {
         float error = controller.motor[i].angle - prev_point.target_angle[i];
-        if (fabsf(error) > 0.02f) {
+        if (fabsf(error) > 0.05f) {
           reached = 0;
-          printS("MISS\r\n");
           break;
         }
       }
@@ -321,8 +202,11 @@ static void controller_task(void *pvParameters) {
         printS(" h: ");
         printF(controller.pose.h);
         printS("\r\n");
+      } else {
+        /* else didn't reach pose */
+        // printS("MISS\r\n");
+        xQueueSendToFront(traj_queue, &point, 0);
       }
-      /* else didn't reach pose */
     }
 
     /* COMMAND NEXT MOVE */
@@ -349,7 +233,8 @@ static void controller_task(void *pvParameters) {
     }
 
     for (uint8_t i = 0; i < 3; i++) {
-      if (controller.motor[i].steps_remaining == 0) continue;
+      if (controller.motor[i].steps_remaining == 0)
+        continue;
 
       controller.motor[i].step_period =
           TICKS_PER_CONTROL / controller.motor[i].steps_remaining;
